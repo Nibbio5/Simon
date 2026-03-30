@@ -56,3 +56,4 @@ fun SimonTheme(
         content = content
     )
 }
+
