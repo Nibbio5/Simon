@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -42,7 +44,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     // MainScreen consumes the insets
                     // to keep the app UI away from the system UI and display cutouts
-                    MainScreen(modifier = Modifier
+                    MainScreen2(modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
                     )
@@ -50,6 +52,189 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun MainScreen2(modifier: Modifier = Modifier)
+{
+    val orientation = LocalConfiguration.current.orientation
+
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val screenWidth = configuration.screenWidthDp.dp
+    val dim2 = (screenWidth / 2.4.dp).dp
+
+
+    // Reference: https://developer.android.com/develop/ui/compose/state-saving
+    var c1 by rememberSaveable { mutableStateOf(false) }
+    var c2 by rememberSaveable { mutableStateOf(false) }
+
+    // Reference: https://developer.android.com/develop/ui/compose/layouts/constraintlayout
+    ConstraintLayout(modifier = modifier) {
+        val bottomGuideLine = createGuidelineFromBottom(screenHeight/3)
+        val (sw1, tv, red, green,cyan, blue, magenta, yellow , delete, end_game) = createRefs()
+        var list = listOf(red, green, cyan, blue, magenta, yellow)
+        var str = "ggg"
+
+        Text(
+            modifier = Modifier.constrainAs(tv) {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                top.linkTo(bottomGuideLine) //dim*3)
+                bottom.linkTo(delete.top)
+            },
+            text = str
+        )
+
+        Button(
+            {str = " Red" },
+            colors = ButtonDefaults.buttonColors(Color.Red),
+            shape = SimonShape,
+            modifier = Modifier
+                .constrainAs(red) {
+                    start.linkTo(parent.start)
+                    end.linkTo(green.start)
+                    bottom.linkTo(bottomGuideLine) //, 100.dp)
+                }
+                .height(dim2).border(
+                    width = SimonBorderWidth,
+                    color = SimonBorderColor,
+                    shape = SimonShape
+                ).fillMaxWidth()
+        ) {
+            Text("Red")
+        }
+
+        Button(
+            {},
+            colors = ButtonDefaults.buttonColors(Color.Green),
+            shape = SimonShape,
+            modifier = Modifier
+                .constrainAs(green) {
+                    start.linkTo(red.end)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(bottomGuideLine)
+                }
+                .height(dim2).border(
+                    width = SimonBorderWidth,
+                    color = SimonBorderColor,
+                    shape = SimonShape
+                ).fillMaxWidth()
+        ) {
+            Text("Red")
+        }
+
+        Button(
+            {},
+            colors = ButtonDefaults.buttonColors(Color.Cyan),
+            shape = SimonShape,
+            modifier = Modifier
+                .constrainAs(cyan) {
+                    start.linkTo(parent.start)
+                    end.linkTo(yellow.start)
+                    bottom.linkTo(red.top)
+                }
+                .height(dim2).border(
+                    width = SimonBorderWidth,
+                    color = SimonBorderColor,
+                    shape = SimonShape
+                ).fillMaxWidth()
+        ) {
+            Text("Red")
+        }
+
+        Button(
+            {},
+            colors = ButtonDefaults.buttonColors(Color.Yellow),
+            shape = SimonShape,
+            modifier = Modifier
+                .constrainAs(yellow) {
+                    start.linkTo(cyan.end)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(green.top)
+                }
+                .height(dim2).border(
+                    width = SimonBorderWidth,
+                    color = SimonBorderColor,
+                    shape = SimonShape
+                ).fillMaxWidth()
+        ) {
+            Text("Red")
+        }
+
+        Button(
+            {},
+            colors = ButtonDefaults.buttonColors(Color.Magenta),
+            shape = SimonShape,
+            modifier = Modifier
+                .constrainAs(magenta) {
+                    start.linkTo(parent.start)
+                    end.linkTo(blue.start)
+                    bottom.linkTo(cyan.top)
+                }
+                .height(dim2).border(
+                    width = SimonBorderWidth,
+                    color = SimonBorderColor,
+                    shape = SimonShape
+                ).fillMaxWidth()
+        ) {
+            Text("Red")
+        }
+
+        Button(
+            {},
+            colors = ButtonDefaults.buttonColors(Color.Blue),
+            shape = SimonShape,
+            modifier = Modifier
+                .constrainAs(blue) {
+                    start.linkTo(magenta.end)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(yellow.top)
+                }
+                .height(dim2).border(
+                    width = SimonBorderWidth,
+                    color = SimonBorderColor,
+                    shape = SimonShape
+                ).fillMaxWidth()
+        ) {
+            Text("Red")
+        }
+
+
+        Button(
+            {},
+            //colors = ButtonDefaults.buttonColors(Color.Magenta),
+            //shape = RectangleShape,
+            modifier = Modifier
+                .constrainAs(delete) {
+                    start.linkTo(parent.start)
+                    end.linkTo(end_game.start)
+                    top.linkTo(tv.bottom)
+                    bottom.linkTo(parent.bottom)
+                }
+                .size(dim, dim/3).padding(5.dp)
+        ) {
+            Text("Delete")
+        }
+
+        Button(
+            {},
+            //colors = ButtonDefaults.buttonColors(Color.Magenta),
+            //shape = RectangleShape,
+            modifier = Modifier
+                .constrainAs(end_game) {
+                    start.linkTo(delete.end)
+                    end.linkTo(parent.end)
+                    top.linkTo(tv.bottom)
+                    bottom.linkTo(parent.bottom)
+                }
+                .size(dim, dim/3).padding(5.dp)
+        ) {
+            Text("End Game")
+        }
+
+
     }
 }
 
@@ -62,12 +247,14 @@ fun MainScreen(modifier: Modifier = Modifier)
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
 
+
     // Reference: https://developer.android.com/develop/ui/compose/state-saving
     var c1 by rememberSaveable { mutableStateOf(false) }
     var c2 by rememberSaveable { mutableStateOf(false) }
 
     // Reference: https://developer.android.com/develop/ui/compose/layouts/constraintlayout
     ConstraintLayout(modifier = modifier) {
+        val bottomGuideLine = createGuidelineFromBottom(screenHeight/3)
         val (sw1, tv, red, green,cyan, blue, magenta, yellow , delete, end_game) = createRefs()
         var list = listOf(red, green, cyan, blue, magenta, yellow)
         var str = "ggg"
@@ -93,7 +280,7 @@ fun MainScreen(modifier: Modifier = Modifier)
             modifier = Modifier.constrainAs(tv) {
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
-                top.linkTo(parent.top, dim*3)
+                top.linkTo(bottomGuideLine) //dim*3)
                 bottom.linkTo(parent.bottom)
             },
             text = str

@@ -1,8 +1,8 @@
 package com.example.simon.ui.theme
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Typography
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -38,8 +38,8 @@ val Typography = Typography(
     */
 )
 
-val SimonShape = RoundedCornerShape(16.dp)
-
-val SimonBorderWidth = 1.dp
-val SimonBorderColor = Color.Black
+//val SimonShape = RoundedCornerShape(16.dp)
+val SimonShape = RectangleShape
+val SimonBorderWidth = 3.dp
+val SimonBorderColor = Color.DarkGray
 val dim = 130.dp
