@@ -1,5 +1,6 @@
 package com.example.simon.ui.theme
 
+import android.R
 import androidx.compose.material3.Typography
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -38,8 +39,10 @@ val Typography = Typography(
     */
 )
 
+//val simonColors = mapOf("red" to Color.Red,"blue" to Color.Blue,"magenta" to Color.Magenta, "cyan" to Color.Cyan, "yellow" to Color.Yellow, "green" to Color.Green)
 //val SimonShape = RoundedCornerShape(16.dp)
+
 val SimonShape = RectangleShape
-val SimonBorderWidth = 3.dp
-val SimonBorderColor = Color.DarkGray
-val dim = 130.dp
+val SimonBorderWidth = 0.dp
+val SimonBorderColor = Color.LightGray
+//val dim = 130.dp

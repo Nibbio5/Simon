@@ -1,5 +1,8 @@
 package com.example.simon.ui.theme
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 
 val Purple80 = Color(0xFFD0BCFF)
@@ -10,9 +13,10 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
-val Red = Color(0xFFE81A0D)
-val Green = Color(0xFF4CAF50)
-val Blue = Color(0xFF3F51B5)
-val Magenta = Color(0xFF4A148C)
-val Yellow = Color(0xFFFFFF00)
-val Cyan = Color(0xFF30B5C2)
+var Green by mutableStateOf(Color(0xFF008000))
+var Blue by mutableStateOf(Color(0xFF0000FF))
+var Red by mutableStateOf(Color(0xFFFF0000))
+var Magenta by mutableStateOf(Color(0xFF4A148C))
+var Yellow by mutableStateOf(Color(0xFFFFFF00))
+
+var Cyan by mutableStateOf(Color(0xFF00FFFF))
