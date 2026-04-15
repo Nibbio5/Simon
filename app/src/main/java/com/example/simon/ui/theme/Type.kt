@@ -45,4 +45,6 @@ val Typography = Typography(
 val SimonShape = RectangleShape
 val SimonBorderWidth = 0.dp
 val SimonBorderColor = Color.LightGray
+
+
 //val dim = 130.dp

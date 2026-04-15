@@ -1,6 +1,7 @@
 package com.example.simon
 
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -37,14 +38,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
 import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.helper.widget.Grid
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.simon.ui.theme.Blue
 import com.example.simon.ui.theme.Cyan
 import com.example.simon.ui.theme.Green
 import com.example.simon.ui.theme.Magenta
 import com.example.simon.ui.theme.Red
+import com.example.simon.ui.theme.ScoreScreen
 import com.example.simon.ui.theme.Simon
 import com.example.simon.ui.theme.SimonBorderColor
 import com.example.simon.ui.theme.SimonBorderWidth
@@ -54,6 +60,8 @@ import com.example.simon.ui.theme.Yellow
 import kotlinx.coroutines.launch
 
 
+
+/*
 class MainActivity : ComponentActivity() {
     val simon = Simon()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,11 +74,10 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     // MainScreen consumes the insets
                     // to keep the app UI away from the system UI and display cutouts
-                    MainScreen3(modifier = Modifier
-                        .padding(innerPadding)
-                    , simon)
-
-
+                    MainScreen4(
+                        modifier = Modifier.fillMaxSize().padding(innerPadding),
+                        simon
+                    )
                 }
             }
         }
@@ -78,6 +85,42 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+*/
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val simon = Simon()
+        // Enable edge-to-edge display on API level < 35
+        enableEdgeToEdge()
+
+        setContent {
+            SimonTheme {
+                val navController = rememberNavController()
+
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    NavHost(
+                        navController = navController, startDestination = "game-screen",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable("game-screen") {
+                            MainScreen4 (
+                                simon,
+                                onStartClicked = { navController.navigate("score-screen") }
+                            )
+                        }
+                        composable ("score-screen") {
+                            ScoreScreen (
+                                simon
+                            )
+                        }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
 
 @Composable
@@ -98,7 +141,7 @@ fun MainScreen(modifier: Modifier, simon: Simon){
                     str += (" R,")
                     scope.launch {
                         simon.blink(1)
-                        str = simon.check(str)
+                        //str = simon.check(str)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(Red),
@@ -115,7 +158,7 @@ fun MainScreen(modifier: Modifier, simon: Simon){
                     str += (" G,")
                     scope.launch {
                         simon.blink(1)
-                        str = simon.check(str)
+                       // str = simon.check(str)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(Green),
@@ -130,7 +173,7 @@ fun MainScreen(modifier: Modifier, simon: Simon){
                     str += (" B,")
                     scope.launch {
                         simon.blink(2)
-                        str = simon.check(str)
+                        //str = simon.check(str)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(Blue),
@@ -145,7 +188,7 @@ fun MainScreen(modifier: Modifier, simon: Simon){
                 onClick = {str += (" Y,")
                     scope.launch {
                         simon.blink(0)
-                        str = simon.check(str)
+                       // str = simon.check(str)
                     }},
                 shape = SimonShape,
                 modifier = modifier.aspectRatio(4f/4f, true)
@@ -160,7 +203,7 @@ fun MainScreen(modifier: Modifier, simon: Simon){
                     str += (" C,")
                     scope.launch {
                         simon.blink(4)
-                        str = simon.check(str)
+                        //str = simon.check(str)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(Cyan),
@@ -178,7 +221,7 @@ fun MainScreen(modifier: Modifier, simon: Simon){
                         simon.blink(3)
                     }
                     scope.launch {
-                        str = simon.check(str)
+                       // str = simon.check(str)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(Magenta),
@@ -190,7 +233,387 @@ fun MainScreen(modifier: Modifier, simon: Simon){
     }
 }
 
+@Composable
+fun MainScreen4(     //modifier: Modifier = Modifier,
+                simon: Simon,
+                onStartClicked: () -> Unit)
+{
+    val orientation = LocalConfiguration.current.orientation
 
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val screenWidth = configuration.screenWidthDp.dp
+
+    var dim = (screenWidth / 2.dp).dp
+    var tvDimW = (screenWidth/1.1.dp).dp
+    var tvDimH = (screenHeight/12.dp).dp
+
+    if (screenWidth > screenHeight){
+        dim = (screenHeight / 3.5.dp).dp
+        tvDimW = (screenWidth/4.dp).dp
+        tvDimH = (screenHeight/5.3.dp).dp
+    }
+
+    // Reference: https://developer.android.com/develop/ui/compose/state-saving
+
+    val scope = rememberCoroutineScope()  //nedded in order to launch a future function
+
+
+
+    // Reference: https://developer.android.com/develop/ui/compose/layouts/constraintlayout
+    ConstraintLayout(modifier = Modifier
+        .fillMaxSize()) {
+
+        /*
+        var bottomGuideLine = createGuidelineFromBottom(screenHeight/3)
+        var bottomVerticalGuideLine = createGuidelineFromEnd(screenWidth/3)
+
+        if(orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            bottomVerticalGuideLine = createGuidelineFromEnd(screenWidth / 3)
+            bottomGuideLine = createGuidelineFromBottom(screenHeight)
+        }else{
+            bottomVerticalGuideLine = createGuidelineFromEnd(screenWidth)
+            bottomGuideLine = createGuidelineFromBottom(screenHeight/3)
+        }
+        val bottomtext = createGuidelineFromBottom(screenHeight/3/2)
+
+         */
+
+        val (tv1, tv, red, green,cyan, blue, magenta, yellow , delete, end_game) = createRefs()
+        var str by rememberSaveable { mutableStateOf("") }
+        var scrollState = rememberScrollState(0)
+        //str = ""
+
+        LaunchedEffect(str) {
+            scrollState.scrollTo(scrollState.maxValue)
+        }
+
+        Text(
+            modifier = Modifier.constrainAs(tv) {
+                if(orientation == Configuration.ORIENTATION_LANDSCAPE){
+                    start.linkTo(green.end)
+                    top.linkTo(parent.top)
+                    bottom.linkTo(delete.top)
+                    end.linkTo(parent.end )
+                }else {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    top.linkTo(red.bottom) //dim*3)
+                    bottom.linkTo(delete.top)
+                }
+            }.width(tvDimW)
+                .height(tvDimH)
+                .verticalScroll(scrollState, true),
+            text = str,
+
+            )
+
+        Button(
+            {
+                str += (" R,")
+                scope.launch {
+                    simon.blink(5)
+                }
+            },
+            colors = ButtonDefaults.buttonColors(Red),
+            shape = SimonShape,
+            modifier =
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Modifier
+                        .constrainAs(red) {
+                            bottom.linkTo(parent.bottom)
+                            end.linkTo(green.start)
+                            top.linkTo(blue.bottom)
+                            //start.linkTo(parent.start)
+                        }
+                        .height(dim).width((1.5 * dim))
+                }else{
+                    Modifier
+                        .constrainAs(red) {
+                            start.linkTo(parent.start)
+                            top.linkTo(blue.bottom)
+                            end.linkTo(green.start, 1.dp)
+                            bottom.linkTo(tv.top) //, 100.dp)
+                        }
+                        .height(dim).width(dim)
+                }
+                    .border(
+                        width = SimonBorderWidth,
+                        color = SimonBorderColor,
+                        shape = SimonShape
+                    )
+        ) {
+            Text("Red")
+        }
+
+        Button(
+            {
+                str += (" G,")
+                scope.launch {
+                    simon.blink(1)
+                }
+            },
+            colors = ButtonDefaults.buttonColors(Green),
+            shape = SimonShape,
+            modifier =
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Modifier
+                        .constrainAs(green) {
+
+                            top.linkTo(yellow.bottom)
+                            bottom.linkTo(parent.bottom)
+                            end.linkTo(tv.start)
+                            start.linkTo(parent.start)
+
+                        }
+                        .height(dim).width((1.5 * dim))
+                }else{
+                    Modifier
+                        .constrainAs(green) {
+                            start.linkTo(red.end)
+                            bottom.linkTo(tv.top)
+                            end.linkTo(parent.end)
+                            top.linkTo(yellow.bottom)
+                        }
+
+                        .height(dim).width(dim)
+                }
+
+                    .border(
+                        width = SimonBorderWidth,
+                        color = SimonBorderColor,
+                        shape = SimonShape
+                    )
+        ) {
+            Text("Green")
+        }
+
+        Button(
+            {
+                str += (" B,")
+                scope.launch {
+                    simon.blink(2)
+                }
+            },
+            colors = ButtonDefaults.buttonColors(Blue),
+            shape = SimonShape,
+            modifier =
+
+                Modifier
+                .constrainAs(blue) {
+                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        top.linkTo(cyan.bottom) //
+                        bottom.linkTo(red.top)
+                        end.linkTo(yellow.start)
+                        //start.linkTo(parent.start)
+                    }else{
+                        start.linkTo(parent.start)
+                        bottom.linkTo(red.top)
+                        end.linkTo(yellow.start)
+                        top.linkTo(cyan.bottom)
+                    }
+
+
+                }
+                .height(dim).width(dim)
+                .border(
+                    width = SimonBorderWidth,
+                    color = SimonBorderColor,
+                    shape = SimonShape
+                )
+        ) {
+            Text("Green")
+        }
+
+        Button(
+            colors = ButtonDefaults.buttonColors(Yellow),
+            onClick = {str += (" Y,")
+                scope.launch {
+                    simon.blink(0)
+                }},
+            shape = SimonShape,
+            modifier =
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Modifier
+                        .constrainAs(yellow) {
+
+                            top.linkTo(magenta.bottom)
+                            bottom.linkTo(green.top)
+                            end.linkTo(tv.start)
+                            start.linkTo(parent.start)
+
+                        }
+                        .height(dim).width((1.5 * dim))
+                }else{
+                    Modifier
+                        .constrainAs(yellow) {
+                            start.linkTo(blue.end)
+                            bottom.linkTo(green.top)
+                            end.linkTo(parent.end)
+                            top.linkTo(magenta.bottom)
+                        }
+
+                        .height(dim).width(dim)
+                }
+                .border(
+                    width = SimonBorderWidth,
+                    color = SimonBorderColor,
+                    shape = SimonShape
+                )
+        ) {
+            Text("Green")
+        }
+
+        Button(
+            {
+                str += (" C,")
+                scope.launch {
+                    simon.blink(4)
+                }
+            },
+            colors = ButtonDefaults.buttonColors(Cyan),
+            shape = SimonShape,
+            modifier =
+            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                Modifier
+                    .constrainAs(cyan) {
+
+                        top.linkTo(parent.top)
+                        // start.linkTo(parent.start)
+                        bottom.linkTo(blue.top)
+                        end.linkTo(magenta.start)
+
+                    }
+                    .height(dim).width((1.5 * dim))
+            }else{
+                Modifier
+                    .constrainAs(cyan) {
+                        start.linkTo(parent.start)
+                        bottom.linkTo(blue.top)
+                        end.linkTo(magenta.start)
+                        top.linkTo(parent.top)
+                    }
+
+                    .height(dim).width(dim)
+            }
+
+                .border(
+                    width = SimonBorderWidth,
+                    color = SimonBorderColor,
+                    shape = SimonShape
+                )
+        ) {
+            Text("Green")
+        }
+
+        Button(
+            {
+                str += (" M,")
+                scope.launch {
+                    simon.blink(3)
+                }
+                scope.launch {
+                }
+            },
+            colors = ButtonDefaults.buttonColors(Magenta),
+            shape = SimonShape,
+            modifier =
+
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Modifier
+                        .constrainAs(magenta) {
+                            start.linkTo(parent.start)
+                            top.linkTo(parent.top)
+                            bottom.linkTo(yellow.top)
+                            end.linkTo(tv.start)
+                        }
+                        .height(dim).width((1.5 * dim))
+                }else{
+                    Modifier
+                        .constrainAs(magenta) {
+                            start.linkTo(cyan.end)
+                            bottom.linkTo(yellow.top)
+                            end.linkTo(parent.end)
+                            top.linkTo(parent.top)
+                        }
+                        .height(dim).width(dim)
+                }
+                    .border(
+                        width = SimonBorderWidth,
+                        color = SimonBorderColor,
+                        shape = SimonShape
+                    )
+        ) {
+            Text("Green")
+        }
+
+        Button(
+            {
+                str = ""
+            },
+            //colors = ButtonDefaults.buttonColors(Color.Magenta),
+            //shape = RectangleShape,
+            modifier =
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                Modifier
+                .constrainAs(delete) {
+
+                    bottom.linkTo(parent.bottom)
+                    end.linkTo(end_game.start)
+                    start.linkTo(green.end)
+                    top.linkTo(tv.bottom)
+                }
+                    .size(dim, dim/2).padding(5.dp)
+                    }else{
+                    Modifier
+                        .constrainAs(delete) {
+                        start.linkTo(parent.start)
+                        end.linkTo(end_game.start)
+                        top.linkTo(tv.bottom)
+                        bottom.linkTo(parent.bottom)
+                    }
+                        .size((dim/1.2.dp).dp, dim/3).padding(5.dp)
+                }
+
+        ) {
+            Text("Delete")
+        }
+
+        Button(
+            onClick ={
+                simon.setScore(str)
+                str = ""
+                onStartClicked()
+            },
+            //colors = ButtonDefaults.buttonColors(Color.Magenta),
+            //shape = RectangleShape,
+            modifier = Modifier
+                .constrainAs(end_game) {
+                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        bottom.linkTo(parent.bottom)
+                        end.linkTo(parent.end)
+                        start.linkTo(delete.end)
+                        top.linkTo(tv.bottom)
+                    }else{
+                        start.linkTo(delete.end)
+                        end.linkTo(parent.end)
+                        top.linkTo(tv.bottom)
+                        bottom.linkTo(parent.bottom)
+                    }
+                }
+                .size((dim/1.2.dp).dp, dim/3).padding(5.dp)
+        ) {
+            Text("End Game")
+        }
+
+        /* LaunchedEffect(Unit) {           //need to implement game logic
+            simon.startRound()
+        }   */
+
+
+    }
+
+}
 @Composable
 fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
 {
@@ -200,7 +623,7 @@ fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
 
-    var dim = (screenWidth / 2.2.dp).dp
+    var dim = (screenWidth / 2.3.dp).dp
     var tvDimW = (screenWidth/1.1.dp).dp
     var tvDimH = (screenHeight/12.dp).dp
 
@@ -213,17 +636,29 @@ fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
     // Reference: https://developer.android.com/develop/ui/compose/state-saving
     var c1 by rememberSaveable { mutableStateOf(false) }
     var c2 by rememberSaveable { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()  //nedded in order to launch a future function
 
 
 
     // Reference: https://developer.android.com/develop/ui/compose/layouts/constraintlayout
     ConstraintLayout(modifier = modifier) {
-        val bottomGuideLine = createGuidelineFromBottom(screenHeight/3)
-        val bottomVerticalGuideLine = createGuidelineFromEnd(screenWidth/3)
+
+        /*
+        var bottomGuideLine = createGuidelineFromBottom(screenHeight/3)
+        var bottomVerticalGuideLine = createGuidelineFromEnd(screenWidth/3)
+
+        if(orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            bottomVerticalGuideLine = createGuidelineFromEnd(screenWidth / 3)
+            bottomGuideLine = createGuidelineFromBottom(screenHeight)
+        }else{
+            bottomVerticalGuideLine = createGuidelineFromEnd(screenWidth)
+            bottomGuideLine = createGuidelineFromBottom(screenHeight/3)
+        }
         val bottomtext = createGuidelineFromBottom(screenHeight/3/2)
+
+         */
+
         val (tv1, tv, red, green,cyan, blue, magenta, yellow , delete, end_game) = createRefs()
-        var list = listOf(red, green, cyan, blue, magenta, yellow)
         var str by rememberSaveable { mutableStateOf("") }
         var scrollState = rememberScrollState(0)
         //str = ""
@@ -235,15 +670,15 @@ fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
         Text(
             modifier = Modifier.constrainAs(tv) {
                 if(orientation == Configuration.ORIENTATION_LANDSCAPE){
-                    start.linkTo(bottomVerticalGuideLine)
-                    top.linkTo(parent.top, 15.dp)
+                    start.linkTo(green.end)
+                    top.linkTo(parent.top)
                     bottom.linkTo(delete.top)
-                    end.linkTo(parent.end, 15.dp)
+                    end.linkTo(parent.end )
                 }else {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    top.linkTo(bottomGuideLine) //dim*3)
-                    bottom.linkTo(bottomtext)
+                    top.linkTo(red.bottom) //dim*3)
+                    bottom.linkTo(delete.top)
                 }
             }.width(tvDimW)
                 .height(tvDimH)
@@ -261,21 +696,27 @@ fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
             },
             colors = ButtonDefaults.buttonColors(Red),
             shape = SimonShape,
-            modifier = Modifier
+            modifier =
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                Modifier
                 .constrainAs(red) {
-                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(green.start)
-                        top.linkTo(blue.bottom)
-                        start.linkTo(parent.start)
-                    }else{
+
+                    bottom.linkTo(parent.bottom)
+                    end.linkTo(green.start)
+                    top.linkTo(blue.bottom)
+                    start.linkTo(parent.start)
+                }
+                    .height(dim).width((1.5 * dim))
+                }else{
+                    Modifier
+                        .constrainAs(red) {
                         start.linkTo(parent.start)
                         top.linkTo(blue.bottom)
                         end.linkTo(green.start, 1.dp)
-                        bottom.linkTo(bottomGuideLine) //, 100.dp)
+                        bottom.linkTo(tv.top) //, 100.dp)
                     }
+                        .height(dim).width(dim)
                 }
-                .height(dim).width(dim)
                 .border(
                     width = SimonBorderWidth,
                     color = SimonBorderColor,
@@ -294,23 +735,30 @@ fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
             },
             colors = ButtonDefaults.buttonColors(Green),
             shape = SimonShape,
-            modifier = Modifier
+            modifier =
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                Modifier
                 .constrainAs(green) {
-                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        top.linkTo(yellow.bottom)
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(bottomVerticalGuideLine)
+
+                    top.linkTo(yellow.bottom)
+                    bottom.linkTo(parent.bottom)
+                    end.linkTo(tv.start)
+                    start.linkTo(red.end)
+
+                }
+                    .height(dim).width((1.5 * dim))
+                }else{
+                    Modifier
+                        .constrainAs(green) {
                         start.linkTo(red.end)
-                    }else{
-                        start.linkTo(red.end)
-                        bottom.linkTo(bottomGuideLine)
+                        bottom.linkTo(tv.top)
                         end.linkTo(parent.end)
                         top.linkTo(yellow.bottom)
                     }
 
-
+                        .height(dim).width(dim)
                 }
-                .height(dim).width(dim)
+
                 .border(
                     width = SimonBorderWidth,
                     color = SimonBorderColor,
@@ -367,7 +815,7 @@ fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
                     if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                         top.linkTo(magenta.bottom)
                         bottom.linkTo(green.top)
-                        end.linkTo(bottomVerticalGuideLine)
+                        end.linkTo(tv.start)
                         start.linkTo(blue.end)
                     }else{
                         start.linkTo(blue.end)
@@ -434,23 +882,27 @@ fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
             },
             colors = ButtonDefaults.buttonColors(Magenta),
             shape = SimonShape,
-            modifier = Modifier
-                .constrainAs(magenta) {
-                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        start.linkTo(cyan.end)
-                        top.linkTo(parent.top)
-                        bottom.linkTo(yellow.top)
-                        end.linkTo(bottomVerticalGuideLine)
-                    }else{
-                        start.linkTo(cyan.end)
-                        bottom.linkTo(yellow.top)
-                        end.linkTo(parent.end)
-                        top.linkTo(parent.top)
+            modifier =
+
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Modifier
+                        .constrainAs(magenta) {
+                            start.linkTo(cyan.end)
+                            top.linkTo(parent.top)
+                            bottom.linkTo(yellow.top)
+                            end.linkTo(tv.start)
                     }
-
-
+                        .height(dim).width((1.5 * dim))
+                }else{
+                    Modifier
+                        .constrainAs(magenta) {
+                                start.linkTo(cyan.end)
+                                bottom.linkTo(yellow.top)
+                                end.linkTo(parent.end)
+                                top.linkTo(parent.top)
+                            }
+                        .height(dim).width(dim)
                 }
-                .height(dim).width(dim)
                 .border(
                     width = SimonBorderWidth,
                     color = SimonBorderColor,
@@ -469,12 +921,12 @@ fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
                     if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                         bottom.linkTo(parent.bottom)
                         end.linkTo(end_game.start)
-                        start.linkTo(bottomVerticalGuideLine)
+                        start.linkTo(green.end)
                         top.linkTo(tv.bottom)
                     }else{
                         start.linkTo(parent.start)
                         end.linkTo(end_game.start)
-                        top.linkTo(bottomtext)
+                        top.linkTo(tv.bottom)
                         bottom.linkTo(parent.bottom)
                     }
                 }
@@ -492,12 +944,12 @@ fun MainScreen3(modifier: Modifier = Modifier, simon: Simon)
                     if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                         bottom.linkTo(parent.bottom)
                         end.linkTo(parent.end)
-                        //start.linkTo(delete.end)
+                        start.linkTo(delete.end)
                         top.linkTo(tv.bottom)
                     }else{
                         start.linkTo(delete.end)
                         end.linkTo(parent.end)
-                        top.linkTo(bottomtext)
+                        top.linkTo(tv.bottom)
                         bottom.linkTo(parent.bottom)
                     }
                 }

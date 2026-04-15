@@ -13,7 +13,7 @@ import kotlin.random.Random
 
 class Simon (
     private var gamesOrder: MutableList<Int> = mutableListOf(),
-    private var score: Int = 0,
+    private var score: MutableList<String> = mutableListOf()
 
 ){
     val simonLetter = arrayOf(" Y", " G", " B", " M", " C", " R")
@@ -31,17 +31,21 @@ class Simon (
 
     suspend fun blink(index: Int) = withContext(Dispatchers.Default){
         when (index) {
-            0 -> { val original = Yellow; Yellow = Color.White; delay(250); Yellow = original }
-            1 -> { val original = Green; Green = Color.White; delay(250); Green = original }
-            2 -> { val original = Blue; Blue = Color.White; delay(250); Blue = original }
-            3 -> { val original = Magenta; Magenta = Color.White; delay(250); Magenta = original }
-            4 -> { val original = Cyan; Cyan = Color.White; delay(250); Cyan = original }
-            5 -> { val original = Red; Red = Color.White; delay(250); Red = original }
+            0 -> { Yellow = Color.White; delay(250); Yellow = Color.Yellow }
+            1 -> { Green = Color.White; delay(250); Green = Color.Green }
+            2 -> { Blue = Color.White; delay(250); Blue = Color.Blue }
+            3 -> { Magenta = Color.White; delay(250); Magenta = Color.Magenta }
+            4 -> { Cyan = Color.White; delay(250); Cyan = Color.Cyan }
+            5 -> { Red = Color.White; delay(250); Red = Color.Red }
         }
 
     }
 
-    suspend fun check (str: String) : String{
+    fun setScore (str : String) {
+        score.add(str)
+    }
+
+   /* suspend fun check (str: String) : String{
         val strList = str.split(",")
         var cont = 0
         for (i in 0 until strList.size -1 ) {
@@ -49,15 +53,17 @@ class Simon (
                 ++cont
         }
         if (cont == gamesOrder.size){
-            ++score
+
             startRound()
             return ""
         }else if (strList.size - 1 == gamesOrder.size)
             return ""
         return str
+    }*/
+
+    fun getScores (): MutableList<String> {
+        return score
     }
-
-
 
 }
 
