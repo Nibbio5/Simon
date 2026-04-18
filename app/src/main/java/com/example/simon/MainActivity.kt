@@ -7,12 +7,21 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -49,6 +58,8 @@ import com.example.simon.ui.theme.SimonShape
 import com.example.simon.ui.theme.SimonTheme
 import com.example.simon.ui.theme.Yellow
 import com.example.simon.ui.theme.simon
+import com.example.simon.ui.theme.simonColors
+import com.example.simon.ui.theme.simonLetters
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,11 +74,18 @@ class MainActivity : ComponentActivity() {
                         navController = navController, startDestination = "game-screen",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable("game-screen") {
+                        /*composable("game-screen") {
                             MainScreen (
                                 onEndGame = {
                                     navController.navigate("score-screen")
 
+                                }
+                            )
+                        }*/
+                        composable("game-screen"){
+                            MainScreen2 (
+                                onEndGame = {
+                                    navController.navigate("score-screen")
                                 }
                             )
                         }
@@ -198,7 +216,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                             top.linkTo(yellow.bottom)
                             bottom.linkTo(parent.bottom)
                             end.linkTo(tv.start)
-                            start.linkTo(parent.start)
+                            start.linkTo(parent.start, 30.dp)
 
                         }
                         .height(dim)
@@ -473,7 +491,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
 
 
 @Composable
-fun MainScreen2(modifier: Modifier = Modifier)
+fun MainScreen2(onEndGame: () -> Unit)
 {
     val orientation = LocalConfiguration.current.orientation
 
@@ -488,197 +506,50 @@ fun MainScreen2(modifier: Modifier = Modifier)
     var c2 by rememberSaveable { mutableStateOf(false) }
 
     // Reference: https://developer.android.com/develop/ui/compose/layouts/constraintlayout
-    ConstraintLayout(modifier = modifier) {
-        val bottomGuideLine = createGuidelineFromBottom(screenHeight/3)
-        val bottomVerticalGuideLine = createGuidelineFromEnd(screenHeight/3)
-        val bottomtext = createGuidelineFromBottom(screenHeight/3/2)
-        val (sw1, tv, red, green,cyan, blue, magenta, yellow , delete, end_game) = createRefs()
-        var list = listOf(red, green, cyan, blue, magenta, yellow)
-        var str by rememberSaveable { mutableStateOf("") }
-        var dim = 0.dp
-        //str = ""
+    Row (
+        modifier =
+            Modifier.fillMaxSize()
+                .padding(5.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
 
-        Text(
-            modifier = Modifier.constrainAs(tv) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                top.linkTo(bottomGuideLine) //dim*3)
-                bottom.linkTo(bottomtext)
-            },
-            text = str
-        )
+        LazyColumn (
+                modifier = Modifier.weight(2/7f)
 
-        Button(
-            {str += " R," },
-            colors = ButtonDefaults.buttonColors(Yellow),
-            shape = SimonShape,
-            modifier = Modifier
-                .constrainAs(red) {
-                    start.linkTo(parent.start)
-                    end.linkTo(green.start, 1.dp)
-                    bottom.linkTo(bottomGuideLine) //, 100.dp)
-                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(bottomVerticalGuideLine)
-                    }
+
+            ){
+                itemsIndexed(simonColors) {index, element ->
+                    SimonButton(element, simonLetters[index])
                 }
-                .height(dim2)
-                .border(
-                    width = SimonBorderWidth,
-                    color = SimonBorderColor,
-                    shape = SimonShape
-                )
-                .fillMaxWidth()
-        ) {
-            Text("Red")
+            }
+            LazyColumn(
+                modifier = Modifier.weight(2/7f)
+                    .fillMaxHeight(),
+                userScrollEnabled = false
+            ) {
+
+            }
+            LazyColumn(
+                modifier = Modifier.weight(3/7f)
+                    .fillMaxHeight()
+            ) {
+
+            }
         }
-
-        Button(
-            {},
-            colors = ButtonDefaults.buttonColors(Color.Green),
-            shape = SimonShape,
-            modifier = Modifier
-                .constrainAs(green) {
-                    start.linkTo(red.end, 1.dp)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(bottomGuideLine)
-                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(bottomVerticalGuideLine)
-                    }
-
-                }
-                .height(dim2)
-                .border(
-                    width = SimonBorderWidth,
-                    color = SimonBorderColor,
-                    shape = SimonShape
-                )
-        ) {
-            Text("Red")
-        }
-
-        Button(
-            {},
-            colors = ButtonDefaults.buttonColors(Color.Cyan),
-            shape = SimonShape,
-            modifier = Modifier
-                .constrainAs(cyan) {
-                    start.linkTo(parent.start)
-                    end.linkTo(yellow.start)
-                    bottom.linkTo(red.top, 2.dp)
-                }
-                .height(dim2)
-                .border(
-                    width = SimonBorderWidth,
-                    color = SimonBorderColor,
-                    shape = SimonShape
-                )
-                .fillMaxWidth()
-        ) {
-            Text("Red")
-        }
-
-        Button(
-            {},
-            colors = ButtonDefaults.buttonColors(Color.Yellow),
-            shape = SimonShape,
-            modifier = Modifier
-                .constrainAs(yellow) {
-                    start.linkTo(cyan.end)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(green.top, 2.dp)
-                }
-                .height(dim2)
-                .border(
-                    width = SimonBorderWidth,
-                    color = SimonBorderColor,
-                    shape = SimonShape
-                )
-                .fillMaxWidth()
-        ) {
-            Text("Red")
-        }
-
-        Button(
-            {},
-            colors = ButtonDefaults.buttonColors(Color.Magenta),
-            shape = SimonShape,
-            modifier = Modifier
-                .constrainAs(magenta) {
-                    start.linkTo(parent.start)
-                    end.linkTo(blue.start)
-                    bottom.linkTo(cyan.top)
-                }
-                .height(dim2)
-                .border(
-                    width = SimonBorderWidth,
-                    color = SimonBorderColor,
-                    shape = SimonShape
-                )
-                .fillMaxWidth()
-        ) {
-            Text("Red")
-        }
-
-        Button(
-            {},
-            colors = ButtonDefaults.buttonColors(Color.Blue),
-            shape = SimonShape,
-            modifier = Modifier
-                .constrainAs(blue) {
-                    start.linkTo(magenta.end)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(yellow.top)
-                }
-                .height(dim2)
-                .border(
-                    width = SimonBorderWidth,
-                    color = SimonBorderColor,
-                    shape = SimonShape
-                )
-                .fillMaxWidth()
-        ) {
-            Text("Red")
-        }
-
-
-        Button(
-            {},
-            //colors = ButtonDefaults.buttonColors(Color.Magenta),
-            //shape = RectangleShape,
-            modifier = Modifier
-                .constrainAs(delete) {
-                    start.linkTo(parent.start)
-                    end.linkTo(end_game.start)
-                    top.linkTo(bottomtext)
-                    bottom.linkTo(parent.bottom)
-                }
-                .size(dim, dim / 3)
-                .padding(5.dp)
-        ) {
-            Text("Delete")
-        }
-
-        Button(
-            {},
-            //colors = ButtonDefaults.buttonColors(Color.Magenta),
-            //shape = RectangleShape,
-            modifier = Modifier
-                .constrainAs(end_game) {
-                    start.linkTo(delete.end)
-                    end.linkTo(parent.end)
-                    top.linkTo(bottomtext)
-                    bottom.linkTo(parent.bottom)
-                }
-                .size(dim, dim / 3)
-                .padding(5.dp)
-        ) {
-            Text("End Game")
-        }
-
-
     }
+
+
+@Composable
+fun SimonButton (color: Color, letter: Char){
+    Button(
+        onClick = {},
+        modifier = Modifier.fillMaxWidth()
+            .height(90.dp)
+        ,
+        shape = MaterialTheme.shapes.medium,
+        colors = ButtonDefaults.buttonColors(color)
+
+    ){}
 }
 
 @Composable
