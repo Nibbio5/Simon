@@ -20,7 +20,8 @@ var Magenta by mutableStateOf(Color(0xFF4A148C))
 var Yellow by mutableStateOf(Color(0xFFFFFF00))
 var Cyan by mutableStateOf(Color(0xFF00FFFF))
 
-var simonColors = listOf(Cyan, Magenta, Blue)
-   // (Yellow, Red, Green)
+var simonColors = listOf(Cyan, Magenta, Blue, Yellow, Red, Green)
 
 val simonLetters = listOf('C', 'M', 'B', 'Y', 'R', 'G')
+
+var currentPressed by mutableStateOf("")

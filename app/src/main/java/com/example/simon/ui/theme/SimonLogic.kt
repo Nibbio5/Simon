@@ -7,7 +7,13 @@ class Simon (
     private var currentPressed: String = "",
 )
 {
-    fun press (){
+    fun press (letter: Char){
+       // currentPressed += letter
+        if ( currentPressed == ""){
+            currentPressed += letter
+        }else{
+            currentPressed += (", $letter")
+        }
         ++round
     }
 
@@ -23,6 +29,14 @@ class Simon (
 
     fun getScoreHistory (): MutableList<Int> {
         return scoreHistory
+    }
+
+    fun gerCurrentPressed (): String {
+        return currentPressed
+    }
+
+    fun resetCurrentPressed () {
+        currentPressed = ""
     }
 
 }

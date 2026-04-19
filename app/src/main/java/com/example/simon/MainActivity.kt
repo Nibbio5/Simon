@@ -1,27 +1,30 @@
 package com.example.simon
 
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -35,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -65,10 +69,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Enable edge-to-edge display on API level < 35
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
         enableEdgeToEdge()
         setContent {
             SimonTheme {
                 val navController = rememberNavController()
+                val orientation = LocalConfiguration.current.orientation
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(
                         navController = navController, startDestination = "game-screen",
@@ -83,12 +92,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }*/
                         composable("game-screen"){
-                            MainScreen2 (
-                                onEndGame = {
+
+                            MainScreen2(onEndGame = {
                                     navController.navigate("score-screen")
-                                }
-                            )
-                        }
+                                })
+                            }
                         composable ("score-screen") {
                             ScoreScreen ()
                         }
@@ -122,7 +130,8 @@ fun MainScreen(     //modifier: Modifier = Modifier,
 
     // Reference: https://developer.android.com/develop/ui/compose/layouts/constraintlayout
     ConstraintLayout(modifier = Modifier
-        .fillMaxSize()) {
+        .fillMaxSize()
+        .safeDrawingPadding()) {
 
         val (tv, red, green,cyan, blue, magenta, yellow , delete, end_game) = createRefs()
         var str by rememberSaveable { mutableStateOf("") }
@@ -164,7 +173,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                 }else{
                     str += ("R")
                 }
-                simon.press()
+              //  simon.press()
             },
             colors = ButtonDefaults.buttonColors(Red),
             shape = SimonShape,
@@ -175,7 +184,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                             bottom.linkTo(parent.bottom)
                             end.linkTo(green.start)
                             top.linkTo(blue.bottom)
-                            //start.linkTo(parent.start)
+                            start.linkTo(parent.start)
                         }
                         .height(dim)
                         .width((1.5 * dim))
@@ -184,7 +193,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                         .constrainAs(red) {
                             start.linkTo(parent.start)
                             top.linkTo(blue.bottom)
-                            end.linkTo(green.start, 1.dp)
+                            end.linkTo(green.start)
                             bottom.linkTo(tv.top) //, 100.dp)
                         }
                         .height(dim)
@@ -204,7 +213,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                 }else{
                     str += ("G")
                 }
-                simon.press()
+              //  simon.press()
             },
             colors = ButtonDefaults.buttonColors(Green),
             shape = SimonShape,
@@ -216,7 +225,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                             top.linkTo(yellow.bottom)
                             bottom.linkTo(parent.bottom)
                             end.linkTo(tv.start)
-                            start.linkTo(parent.start, 30.dp)
+                            start.linkTo(red.end)
 
                         }
                         .height(dim)
@@ -248,7 +257,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                 }else{
                     str += ("B")
                 }
-                simon.press()
+               // simon.press()
             },
             colors = ButtonDefaults.buttonColors(Blue),
             shape = SimonShape,
@@ -260,7 +269,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                             top.linkTo(cyan.bottom) //
                             bottom.linkTo(red.top)
                             end.linkTo(yellow.start)
-                            //start.linkTo(parent.start)
+                            start.linkTo(parent.start)
                         }
                         .height(dim)
                         .width((1.5 * dim))
@@ -291,7 +300,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                 }else{
                     str += ("Y")
                 }
-                simon.press()
+               // simon.press()
               },
             shape = SimonShape,
             modifier =
@@ -302,7 +311,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                             top.linkTo(magenta.bottom)
                             bottom.linkTo(green.top)
                             end.linkTo(tv.start)
-                            start.linkTo(parent.start)
+                            start.linkTo(blue.end)
 
                         }
                         .height(dim)
@@ -333,7 +342,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                 }else{
                     str += ("C")
                 }
-                simon.press()
+               // simon.press()
             },
             colors = ButtonDefaults.buttonColors(Cyan),
             shape = SimonShape,
@@ -343,7 +352,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                     .constrainAs(cyan) {
 
                         top.linkTo(parent.top)
-                        // start.linkTo(parent.start)
+                         start.linkTo(parent.start)
                         bottom.linkTo(blue.top)
                         end.linkTo(magenta.start)
 
@@ -377,7 +386,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                 }else{
                     str += ("M")
                 }
-                simon.press()
+               // simon.press()
             },
             colors = ButtonDefaults.buttonColors(Magenta),
             shape = SimonShape,
@@ -386,7 +395,7 @@ fun MainScreen(     //modifier: Modifier = Modifier,
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     Modifier
                         .constrainAs(magenta) {
-                            start.linkTo(parent.start)
+                            start.linkTo(cyan.end)
                             top.linkTo(parent.top)
                             bottom.linkTo(yellow.top)
                             end.linkTo(tv.start)
@@ -491,7 +500,19 @@ fun MainScreen(     //modifier: Modifier = Modifier,
 
 
 @Composable
-fun MainScreen2(onEndGame: () -> Unit)
+fun MainScreen2 (onEndGame: () -> Unit) {
+
+    val orientation = LocalConfiguration.current.orientation
+    var buttonsClicked by rememberSaveable { mutableStateOf("") }
+    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        RowMainScreen(onEndGame,buttonsClicked,{buttonsClicked += it})
+    } else {
+        ColumnMainScreen(onEndGame,buttonsClicked,{buttonsClicked += it})
+    }
+}
+
+@Composable
+fun RowMainScreen(onEndGame: () -> Unit, buttonsClicked: String, onButtonsClickedChange: (String) -> Unit)
 {
     val orientation = LocalConfiguration.current.orientation
 
@@ -502,54 +523,256 @@ fun MainScreen2(onEndGame: () -> Unit)
 
 
     // Reference: https://developer.android.com/develop/ui/compose/state-saving
-    var c1 by rememberSaveable { mutableStateOf(false) }
-    var c2 by rememberSaveable { mutableStateOf(false) }
-
+    var scrollState = rememberScrollState(0)
+    //var buttonsClicked by rememberSaveable { mutableStateOf("") }
+    LaunchedEffect(buttonsClicked) {
+        scrollState.scrollTo(scrollState.maxValue)
+    }
     // Reference: https://developer.android.com/develop/ui/compose/layouts/constraintlayout
     Row (
         modifier =
             Modifier.fillMaxSize()
                 .padding(5.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
 
-        LazyColumn (
-                modifier = Modifier.weight(2/7f)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.weight(0.4f)
+        ) {
+            itemsIndexed(simonColors) {index, element ->
+                SimonButton(element, simonLetters[index],
+                    pressed = {
+                        if(buttonsClicked != ""){
+                           onButtonsClickedChange(", ${simonLetters[index]}")
+                        }else{
+                            onButtonsClickedChange ("${simonLetters[index]}")
+                        }
+                    //simon.press(letter = simonLetters[index])
 
-
-            ){
-                itemsIndexed(simonColors) {index, element ->
-                    SimonButton(element, simonLetters[index])
-                }
+                })
             }
+        }
+
             LazyColumn(
-                modifier = Modifier.weight(2/7f)
+                modifier = Modifier.weight(0.6f)
                     .fillMaxHeight(),
-                userScrollEnabled = false
+                userScrollEnabled = false,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
             ) {
+                item {
+                    Text(
+                        modifier = Modifier
+                            .width(320.dp)
+                            .height(85.dp)
+                            .background(MaterialTheme.colorScheme.secondary, MaterialTheme.shapes.small)
+                            .padding(5.dp)
+                            .verticalScroll(scrollState, true),
+                        text = buttonsClicked,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSecondary
+                    )
+                }
+                item {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+
+                    ) {
+                        Button(
+                            {
+                                onButtonsClickedChange ("")
+                            },
+                            modifier =
+                                    Modifier.size(130.dp, 50.dp)
+                                        .padding(5.dp)
+                               .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
+                            shape = MaterialTheme.shapes.small,
+
+                        ) {
+                            Text(
+                                text = "Delete",
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                        Button(
+                            {
+                                simon.endGame(buttonsClicked)
+                                onButtonsClickedChange("")
+                                onEndGame()
+                            },
+                            modifier =
+                                Modifier.size(130.dp, 50.dp)
+                                    .padding(5.dp)
+                                    .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
+                            shape = MaterialTheme.shapes.small,
+
+                            ) {
+                            Text(
+                                text = "End Game",
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                }
+
 
             }
-            LazyColumn(
-                modifier = Modifier.weight(3/7f)
-                    .fillMaxHeight()
-            ) {
 
-            }
         }
     }
 
+@Composable
+fun ColumnMainScreen(onEndGame: () -> Unit, buttonsClicked: String,onButtonsClickedChange: (String) -> Unit,)
+{
+    val orientation = LocalConfiguration.current.orientation
+
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val screenWidth = configuration.screenWidthDp.dp
+    val dim2 = (screenWidth / 2.4.dp).dp
+
+
+    // Reference: https://developer.android.com/develop/ui/compose/state-saving
+    var scrollState = rememberScrollState(0)
+    //var buttonsClicked by rememberSaveable { mutableStateOf("") }
+    LaunchedEffect(buttonsClicked) {
+        scrollState.scrollTo(scrollState.maxValue)
+    }
+    // Reference: https://developer.android.com/develop/ui/compose/layouts/constraintlayout
+    Column (
+        modifier =
+            Modifier.fillMaxSize()
+                .padding(5.dp),
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.weight(0.4f)
+        ) {
+            itemsIndexed(simonColors) {index, element ->
+                SimonButton(element, simonLetters[index],
+                    pressed = {
+                        if(buttonsClicked != ""){
+                            onButtonsClickedChange(", ${simonLetters[index]}")
+                        }else{
+                            onButtonsClickedChange ("${simonLetters[index]}")
+                        }
+                        //simon.press(letter = simonLetters[index])
+
+                    })
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier.weight(0.6f)
+                .fillMaxHeight(),
+            userScrollEnabled = false,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            item {
+                Text(
+                    modifier = Modifier
+                        .width(320.dp)
+                        .height(85.dp)
+                        .background(MaterialTheme.colorScheme.secondary, MaterialTheme.shapes.small)
+                        .padding(5.dp)
+                        .verticalScroll(scrollState, true),
+                    text = buttonsClicked,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
+            }
+            item {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+
+                ) {
+                    Button(
+                        {
+                            onButtonsClickedChange ("")
+                        },
+                        modifier =
+                            Modifier.size(130.dp, 50.dp)
+                                .padding(5.dp)
+                                .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
+                        shape = MaterialTheme.shapes.small,
+
+                        ) {
+                        Text(
+                            text = "Delete",
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                    Button(
+                        {
+                            simon.endGame(buttonsClicked)
+                            onButtonsClickedChange("")
+                            onEndGame()
+                        },
+                        modifier =
+                            Modifier.size(130.dp, 50.dp)
+                                .padding(5.dp)
+                                .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
+                        shape = MaterialTheme.shapes.small,
+
+                        ) {
+                        Text(
+                            text = "End Game",
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            }
+
+
+        }
+
+    }
+            }
+
+
+
 
 @Composable
-fun SimonButton (color: Color, letter: Char){
+fun SimonButton (color: Color, letter: Char, pressed: () -> Unit){
     Button(
-        onClick = {},
+        onClick = pressed,
         modifier = Modifier.fillMaxWidth()
-            .height(90.dp)
+            .height(105.dp)
         ,
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(color)
 
-    ){}
+    ){
+        Text(
+            text = letter.toString(),
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+    }
+}
+
+@Composable
+fun BottomPart (scrollState: ScrollState, str: String){
+    Text(
+        modifier = Modifier
+            .width(320.dp)
+            .height(85.dp)
+            .background(MaterialTheme.colorScheme.secondary, MaterialTheme.shapes.small)
+            .padding(5.dp)
+            .verticalScroll(scrollState, true),
+        text = str,
+        fontWeight = FontWeight.Medium,
+        color = MaterialTheme.colorScheme.onSecondary
+    )
+
 }
 
 @Composable
