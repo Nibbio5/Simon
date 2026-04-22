@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simon</string>
+    <string name="delete_button_name">Elimina</string>
+    <string name="end_game_button_name">Fine Partita</string>
+</resources>

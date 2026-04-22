@@ -16,12 +16,10 @@ val Pink40 = Color(0xFF7D5260)
 var Green by mutableStateOf(Color(0xFF008000))
 var Blue by mutableStateOf(Color(0xFF0000FF))
 var Red by mutableStateOf(Color(0xFFFF0000))
-var Magenta by mutableStateOf(Color(0xFF4A148C))
+var Magenta by mutableStateOf(Color(0xFF9C27B0))
 var Yellow by mutableStateOf(Color(0xFFFFFF00))
 var Cyan by mutableStateOf(Color(0xFF00FFFF))
 
 var simonColors = listOf(Cyan, Magenta, Blue, Yellow, Red, Green)
 
 val simonLetters = listOf('C', 'M', 'B', 'Y', 'R', 'G')
-
-var currentPressed by mutableStateOf("")

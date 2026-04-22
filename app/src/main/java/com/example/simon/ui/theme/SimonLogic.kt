@@ -1,23 +1,25 @@
 package com.example.simon.ui.theme
 
+
+/**
+ * Used for the logic, it saves the score and the button letters in 2 lists
+ * MutableList<T>
+ * @param history all the letters od the previous sessions
+ * @param scoreHistory all the scores of the previous sessions
+ */
 class Simon (
     private var history: MutableList<String> = mutableListOf(),
     private var scoreHistory: MutableList<Int> = mutableListOf(),
     private var round: Int = 0,
-    private var currentPressed: String = "",
 )
 {
-    fun press (letter: Char){
-       // currentPressed += letter
-        if ( currentPressed == ""){
-            currentPressed += letter
-        }else{
-            currentPressed += (", $letter")
-        }
+    // + 1 in the current score
+    fun press (){
         ++round
     }
 
-    fun endGame (str : String) {
+    // ad the game is finished
+    fun endGame (str: String) {
         history.add(str)
         scoreHistory.add(round)
         round = 0
@@ -31,12 +33,8 @@ class Simon (
         return scoreHistory
     }
 
-    fun gerCurrentPressed (): String {
-        return currentPressed
-    }
-
-    fun resetCurrentPressed () {
-        currentPressed = ""
+    fun resetPressed () {
+        round = 0
     }
 
 }

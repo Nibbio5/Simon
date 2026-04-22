@@ -1,12 +1,9 @@
 package com.example.simon.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // Set of Material typography styles to start with
@@ -18,7 +15,6 @@ val Typography = Typography(
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     )
-
 
     /* Other default text styles to override
     titleLarge = TextStyle(
@@ -38,14 +34,9 @@ val Typography = Typography(
     */
 )
 
-//val simonColors = mapOf("red" to Color.Red,"blue" to Color.Blue,"magenta" to Color.Magenta, "cyan" to Color.Cyan, "yellow" to Color.Yellow, "green" to Color.Green)
-//val SimonShape = RoundedCornerShape(16.dp)
-
-val SimonShape = RectangleShape
-val SimonBorderWidth = 0.dp
-val SimonBorderColor = Color.LightGray
-
+/**
+ * @param simon is the logic behind the game used for:
+ *      -saving the pressed buttons
+ *      -save the gotten score
+ */
 val simon = Simon()
-
-
-//val dim = 130.dp

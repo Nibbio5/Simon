@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,18 +17,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
+
+/**
+ * The score screen is used in order to display the score
+ * and the letter corresponding to the color pressed in sequence
+ * @param historyList is a list of string corresponding to all the
+ * played game since the start of the application
+ * @param scoreList is a list of integer corresponding to all the
+ * score gotten since the start of the application
+ */
 @Composable
-fun ScoreScreen(historyList : MutableList<String> = rememberSaveable()  { simon.getHistory()}, scoreList : MutableList<Int> = rememberSaveable(){ simon.getScoreHistory() }) {
-    var scrollState = rememberScrollState(0)
+fun ScoreScreen(historyList : MutableList<String> = rememberSaveable { simon.getHistory()}, scoreList : MutableList<Int> = rememberSaveable{ simon.getScoreHistory() }) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize() //.verticalScroll(scrollState)
+        modifier = Modifier.fillMaxSize()
     ) {
         itemsIndexed(historyList) { index, element ->
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
-
-                //Takes the background color from the scheme, the padding is nedded in order to
-                // mantain a good margin from the borders
               modifier = Modifier
                   .padding(
                       20.dp
