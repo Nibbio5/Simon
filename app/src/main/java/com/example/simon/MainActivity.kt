@@ -51,6 +51,7 @@ import com.example.simon.ui.theme.ScoreScreen
 import com.example.simon.ui.theme.SimonTheme
 import com.example.simon.ui.theme.simon
 import com.example.simon.ui.theme.simonColors
+import com.example.simon.ui.theme.simonHorizontalColors
 import com.example.simon.ui.theme.simonLetters
 
 class MainActivity : ComponentActivity() {
@@ -89,6 +90,8 @@ class MainActivity : ComponentActivity() {
 /**
  * Main screen is used for choosing the correct
  * screen layout for the correct orientation
+ * a lambda function is used to pass the
+ * @param onEndGame is used to navigate to the score screen
  */
 @Composable
 fun MainScreen (onEndGame: () -> Unit) {
@@ -114,6 +117,18 @@ fun MainScreen (onEndGame: () -> Unit) {
     }
 }
 
+/**
+ * This function along the ColumnMainScreen are the layout
+ * for the Landscape orientation and the Portrait orientation
+ * The structure is a little different for the Landscape orientation
+ * since is use a Row and a LazyHorizontalGrid for the buttons and
+ * the main widget distribution
+ *
+ * @param onEndGame is used to navigate to the score screen
+ * @param onButtonsClickedChange is used to update the buttonsClicked
+ * @param buttonsClicked is used to display the buttons pressed, and save the
+ * pressed buttons in a string
+ */
 @Composable
 fun RowMainScreen(onEndGame: () -> Unit, buttonsClicked: String, onButtonsClickedChange: (String) -> Unit) {
     val scrollState = rememberScrollState(0)
@@ -132,7 +147,7 @@ fun RowMainScreen(onEndGame: () -> Unit, buttonsClicked: String, onButtonsClicke
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            itemsIndexed(simonColors) { index, element ->
+            itemsIndexed(simonHorizontalColors) { index, element ->
                 SimonButton(
                     element, simonLetters[index],
                     pressed = {
@@ -207,16 +222,25 @@ fun RowMainScreen(onEndGame: () -> Unit, buttonsClicked: String, onButtonsClicke
     }
 }
 
+/**
+ * This function along the RowMainScreen are the layout
+ * for the Landscape orientation and the Portrait orientation
+ * The structure is a little different for the Landscape orientation
+ * since is use a Column and a LazyVerticalGrid for the buttons and
+ * the main widget distribution
+ *
+ * @param onEndGame is used to navigate to the score screen
+ * @param onButtonsClickedChange is used to update the buttonsClicked
+ * @param buttonsClicked is used to display the buttons pressed, and save the
+ * pressed buttons in a string
+ */
 @Composable
 fun ColumnMainScreen(onEndGame: () -> Unit, buttonsClicked: String,onButtonsClickedChange: (String) -> Unit)
 {
-    // Reference: https://developer.android.com/develop/ui/compose/state-saving
     val scrollState = rememberScrollState(0)
-    //var buttonsClicked by rememberSaveable { mutableStateOf("") }
     LaunchedEffect(buttonsClicked) {
         scrollState.scrollTo(scrollState.maxValue)
     }
-    // Reference: https://developer.android.com/develop/ui/compose/layouts/constraintlayout
     Column (
         modifier =
             Modifier.fillMaxSize()
@@ -227,7 +251,6 @@ fun ColumnMainScreen(onEndGame: () -> Unit, buttonsClicked: String,onButtonsClic
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            //modifier = Modifier.weight(0.6f),
             userScrollEnabled = false
         ) {
             itemsIndexed(simonColors) {index, element ->
@@ -245,7 +268,6 @@ fun ColumnMainScreen(onEndGame: () -> Unit, buttonsClicked: String,onButtonsClic
 
         LazyColumn(
            modifier = Modifier.fillMaxHeight(),
-         //       .fillMaxHeight(),
             userScrollEnabled = false,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
@@ -267,8 +289,6 @@ fun ColumnMainScreen(onEndGame: () -> Unit, buttonsClicked: String,onButtonsClic
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround,
-                    //verticalAlignment = Alignment.CenterVertically
-
                 ) {
                     Button(
                         {
@@ -315,22 +335,23 @@ fun ColumnMainScreen(onEndGame: () -> Unit, buttonsClicked: String,onButtonsClic
             }
 
 
+/**
+ * This function is used to create the colored buttons of Simon game
+ * @param color is the color of the button
+ * @param letter is the capital starting letter corresponding to the color of the button
+ * @param pressed is a lambda function used to add the letter to the string of the buttons pressed
+ */
 @Composable
 fun SimonButton (color: Color, letter: Char, pressed: () -> Unit){
     Button(
         onClick = pressed,
         modifier = Modifier.fillMaxWidth()
-            //.height(105.dp)
             .aspectRatio(4f/3f)
         ,
         shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(color)
 
     ){
-        Text(
-            text = letter.toString(),
-            color = MaterialTheme.colorScheme.onPrimary
-        )
     }
 }
 

@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
  * played game since the start of the application
  * @param scoreList is a list of integer corresponding to all the
  * score gotten since the start of the application
+ * both need to be rememberSavable in order to be saved when the
+ * device change orientation
  */
 @Composable
 fun ScoreScreen(historyList : MutableList<String> = rememberSaveable { simon.getHistory()}, scoreList : MutableList<Int> = rememberSaveable{ simon.getScoreHistory() }) {
