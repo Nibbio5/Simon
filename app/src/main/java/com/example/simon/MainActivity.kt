@@ -7,6 +7,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -53,8 +56,22 @@ import com.example.simon.ui.theme.simon
 import com.example.simon.ui.theme.simonColors
 import com.example.simon.ui.theme.simonHorizontalColors
 import com.example.simon.ui.theme.simonLetters
+import database.GamesDatabase
 
 class MainActivity : ComponentActivity() {
+
+    private val mainActivityViewModel: MainActivityViewModel by viewModels() {
+        viewModelFactory {
+            initializer {
+                val database = GamesDatabase.getDatabase(applicationContext)
+                val repository = GamesRepository(database.gamesDao())
+
+                MainActivityViewModel(repository)
+            }
+        }
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Enable edge-to-edge display on API level < 35
@@ -74,7 +91,7 @@ class MainActivity : ComponentActivity() {
                         composable("game-screen"){
                             MainScreen(onEndGame = {
                                     navController.navigate("score-screen")
-                                })
+                                }, mainActivityViewModel)
 
                             }
                         composable ("score-screen") {
@@ -94,7 +111,7 @@ class MainActivity : ComponentActivity() {
  * @param onEndGame is used to navigate to the score screen
  */
 @Composable
-fun MainScreen (onEndGame: () -> Unit) {
+fun MainScreen (onEndGame: () -> Unit, mainActivityViewModel: MainActivityViewModel) {
     val orientation = LocalConfiguration.current.orientation
     var buttonsClicked by rememberSaveable { mutableStateOf("") }
     if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -103,7 +120,8 @@ fun MainScreen (onEndGame: () -> Unit) {
             else {
                 buttonsClicked += it
         }
-        })
+        },
+            mainActivityViewModel)
 
     } else {
         ColumnMainScreen(onEndGame,buttonsClicked,
@@ -113,7 +131,8 @@ fun MainScreen (onEndGame: () -> Unit) {
         else {
             buttonsClicked += it
         }
-        })
+        },
+            mainActivityViewModel)
     }
 }
 
@@ -130,7 +149,10 @@ fun MainScreen (onEndGame: () -> Unit) {
  * pressed buttons in a string
  */
 @Composable
-fun RowMainScreen(onEndGame: () -> Unit, buttonsClicked: String, onButtonsClickedChange: (String) -> Unit) {
+fun RowMainScreen(
+    onEndGame: () -> Unit, buttonsClicked: String,
+    onButtonsClickedChange: (String) -> Unit,
+    mainActivityViewModel: MainActivityViewModel) {
     val scrollState = rememberScrollState(0)
     LaunchedEffect(buttonsClicked) {
         scrollState.scrollTo(scrollState.maxValue)
@@ -235,7 +257,11 @@ fun RowMainScreen(onEndGame: () -> Unit, buttonsClicked: String, onButtonsClicke
  * pressed buttons in a string
  */
 @Composable
-fun ColumnMainScreen(onEndGame: () -> Unit, buttonsClicked: String,onButtonsClickedChange: (String) -> Unit)
+fun ColumnMainScreen(
+    onEndGame: () -> Unit,
+    buttonsClicked: String,
+    onButtonsClickedChange: (String) -> Unit,
+    mainActivityViewModel: MainActivityViewModel)
 {
     val scrollState = rememberScrollState(0)
     LaunchedEffect(buttonsClicked) {
