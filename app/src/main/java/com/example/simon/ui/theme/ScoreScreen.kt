@@ -29,7 +29,13 @@ import androidx.compose.ui.unit.dp
  * device change orientation
  */
 @Composable
-fun ScoreScreen(historyList : MutableList<String> = rememberSaveable { simon.getHistory()}, scoreList : MutableList<Int> = rememberSaveable{ simon.getScoreHistory() }) {
+fun ScoreScreen(historyList : MutableList<String> = rememberSaveable {
+    //simon.getHistory()
+                    mutableListOf()
+                                                                     }
+                , scoreList : MutableList<Int> = rememberSaveable{
+                        mutableListOf()
+                }) {
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {

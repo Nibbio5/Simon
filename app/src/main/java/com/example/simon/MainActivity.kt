@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -45,16 +46,18 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.room.InvalidationTracker
 import com.example.simon.ui.theme.ScoreScreen
 import com.example.simon.ui.theme.SimonTheme
+import com.example.simon.ui.theme.gg
 import com.example.simon.ui.theme.simon
 import com.example.simon.ui.theme.simonColors
-import com.example.simon.ui.theme.simonHorizontalColors
 import com.example.simon.ui.theme.simonLetters
 import database.GamesDatabase
 
@@ -82,6 +85,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SimonTheme {
+                LaunchedEffect(Unit) {
+                    mainActivityViewModel.startGame()
+                }
                 val navController = rememberNavController()
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(
@@ -153,10 +159,12 @@ fun RowMainScreen(
     onEndGame: () -> Unit, buttonsClicked: String,
     onButtonsClickedChange: (String) -> Unit,
     mainActivityViewModel: MainActivityViewModel) {
+    val pressedText by mainActivityViewModel.getPressed().observeAsState("")
     val scrollState = rememberScrollState(0)
     LaunchedEffect(buttonsClicked) {
         scrollState.scrollTo(scrollState.maxValue)
     }
+
 
     Row(
         modifier = Modifier.fillMaxSize().padding(5.dp),
@@ -169,16 +177,13 @@ fun RowMainScreen(
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            itemsIndexed(simonHorizontalColors) { index, element ->
+            itemsIndexed(
+                mainActivityViewModel.colors) { index, entry ->
                 SimonButton(
-                    element, simonLetters[index],
+                    mainActivityViewModel.colors[index], simonLetters[index],
                     pressed = {
-                        if (buttonsClicked != "") {
-                            onButtonsClickedChange(", ${simonLetters[index]}")
-                        } else {
-                            onButtonsClickedChange("${simonLetters[index]}")
-                        }
-                        simon.press()
+                        mainActivityViewModel.press(simonLetters[index])
+                        //simon.press()
                     })
             }
         }
@@ -198,7 +203,7 @@ fun RowMainScreen(
                         .background(MaterialTheme.colorScheme.secondary, MaterialTheme.shapes.small)
                         .padding(5.dp)
                         .verticalScroll(scrollState, true),
-                    text = buttonsClicked,
+                    text = pressedText,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSecondary
                 )
@@ -287,7 +292,7 @@ fun ColumnMainScreen(
                         }else{
                             onButtonsClickedChange ("${simonLetters[index]}")
                         }
-                        simon.press()
+                       // simon.press()
                     })
             }
         }
@@ -380,4 +385,5 @@ fun SimonButton (color: Color, letter: Char, pressed: () -> Unit){
     ){
     }
 }
+
 
