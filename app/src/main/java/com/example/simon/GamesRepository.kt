@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.Flow
 
 class GamesRepository (private val gamesDao: GamesDao) {
 
-    val allUsers: Flow<List<Game>> = gamesDao.getAllGames()
+    val allGames: Flow<List<Game>> = gamesDao.getAllGames()
 
     suspend fun insert(game: Game){
-        gamesDao.upsert(game)
+        gamesDao.insert(game)
     }
 
 }

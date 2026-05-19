@@ -26,7 +26,7 @@ val gg = mutableMapOf<Char,Color>('C' to Cyan, 'M' to Magenta, 'B' to Blue, 'Y' 
  * in RowMainScreen and ColumnMainScreen
  */
 
-val simonColors = mutableListOf<Color>(Cyan, Magenta, Blue, Yellow, Red, Green)
+val simonColors = mutableListOf(Cyan, Magenta, Blue, Yellow, Red, Green)
 val simonHorizontalColors = listOf(Cyan, Blue, Red, Magenta, Yellow, Green)
 
 val simonLetters = listOf('C', 'M', 'B', 'Y', 'R', 'G')

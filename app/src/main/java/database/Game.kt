@@ -6,6 +6,6 @@ import androidx.room.PrimaryKey
 @Entity
 data class Game (
     @PrimaryKey (autoGenerate = true) val id: Int = 0,
-    val score: Int,
+    val score: Int?,
     val sequence: String
 )
