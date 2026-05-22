@@ -3,7 +3,6 @@ package com.example.simon.ui.theme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,133 +17,19 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.simon.MainActivityViewModel
 
-/**
- * The score screen is used in order to display the score
- * and the letter corresponding to the color pressed in sequence
- * @param historyList is a list of string corresponding to all the
- * played game since the start of the application
- * @param scoreList is a list of integer corresponding to all the
- * score gotten since the start of the application
- * both need to be rememberSavable in order to be saved when the
- * device change orientation
- */
-
-/**
 @Composable
-fun ScoreScreen(historyList : MutableList<String> = rememberSaveable {
-    //simon.getHistory()
-                    mutableListOf()
-                                                                     }
-                , scoreList : MutableList<Int> = rememberSaveable{
-                        mutableListOf()
-                }) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        itemsIndexed(historyList) { index, element ->
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-              modifier = Modifier
-                  .padding(
-                      20.dp
-                  )
-                  .background(
-                      MaterialTheme.colorScheme.secondary,
-                      MaterialTheme.shapes.small
-                  )
-                  .fillMaxWidth()
-            ){
-                Text(
-                    modifier = Modifier
-                        .padding(
-                            10.dp
-                        ),
-                    text = "${scoreList[index]}",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondary
-
-                )
-                Text(
-                    modifier = Modifier.padding(10.dp),
-                    text = element,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-            }
-
-        }
-    }
-}  **/
-@Composable
-fun ScoreScreen1(onStartGame : () -> Unit, mainActivityViewModel: MainActivityViewModel) {
-
-    val gamesList by mainActivityViewModel.allGames.collectAsState()
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        items(gamesList) { game ->
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .padding(20.dp)
-                    .background(
-                        MaterialTheme.colorScheme.secondary,
-                        MaterialTheme.shapes.small
-                    )
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    modifier = Modifier.padding(10.dp),
-                    text = "${game.score}",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-                Text(
-                    modifier = Modifier.padding(10.dp),
-                    text = game.sequence.subSequence(1, game.sequence.length - 1).toString(),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-                Button(
-                    onClick = {
-                        onStartGame()
-                    },
-                    modifier = Modifier.padding(end = 10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text(
-                        text = ">",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ScoreScreen(onStartGame : () -> Unit,mainActivityViewModel: MainActivityViewModel) {
+fun DetailScreen(onStartGame : () -> Unit,mainActivityViewModel: MainActivityViewModel) {
 
     val gamesList by mainActivityViewModel.allGames.collectAsState()
 
@@ -173,11 +58,11 @@ fun ScoreScreen(onStartGame : () -> Unit,mainActivityViewModel: MainActivityView
                 .fillMaxSize()
                 .padding(
                     top = innerPadding.calculateTopPadding(),
-            bottom = innerPadding.calculateBottomPadding())
+                    bottom = innerPadding.calculateBottomPadding())
         ) {
             items(gamesList) { game ->
                 Button (
-                   // shape = MaterialTheme.shapes.small,
+                    // shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.secondary),
 
                     modifier = Modifier
@@ -185,7 +70,7 @@ fun ScoreScreen(onStartGame : () -> Unit,mainActivityViewModel: MainActivityView
                         .background(
                             MaterialTheme.colorScheme.secondary,
                             MaterialTheme.shapes.small
-                ).wrapContentSize(),
+                        ).wrapContentSize(),
                     onClick = {
 
                     },
@@ -200,7 +85,7 @@ fun ScoreScreen(onStartGame : () -> Unit,mainActivityViewModel: MainActivityView
                             .background(
                                 MaterialTheme.colorScheme.secondary,
 
-                            )
+                                )
                             .fillMaxWidth()
                     ) {
                         Text(
@@ -244,4 +129,3 @@ fun ScoreScreen(onStartGame : () -> Unit,mainActivityViewModel: MainActivityView
         }
     }
 }
-
