@@ -3,5 +3,6 @@
     <string name="app_name">Simon</string>
     <string name="end_game_button_name">Fine Partita</string>
     <string name="start_game_button_name">Avvia Partita</string>
-    <string name="game_over">Hai Perso</string>
+    <string name="score_text">Il tuo punteggio in questa partita è: </string>
+    <string name="detail_screen_topbar">Dettaglio Partita</string>
 </resources>

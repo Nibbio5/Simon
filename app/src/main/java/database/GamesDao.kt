@@ -16,10 +16,13 @@ interface GamesDao {
     @Insert
     suspend fun insert(game: Game)
 
-
     @Delete
     suspend fun delete(game: Game)
 
     @Query("SELECT * FROM game")
     fun getAllGames(): Flow<List<Game>>
+
+    @Query("SELECT * FROM game WHERE id = :id")
+    fun getGameById(id: Int): Flow<Game>
+
 }

@@ -1,20 +1,9 @@
 package com.example.simon.ui.theme
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.VideogameAsset
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,109 +11,92 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.simon.MainActivityViewModel
+import com.example.simon.R
+
+
+/**
+ * This is the screen that is used to show the detail of the game
+ * is is shown to the user after he click on a game in the score screen.
+ *
+ * This Screen take the game from the room database and it print on a text
+ * on screen, the index after which the error had appen are colored in red.
+ *
+ * @param mainActivityViewModel is the view model of the main activity
+ * @param gameId is the id of the game to show the detail of
+ */
 
 @Composable
-fun DetailScreen(onStartGame : () -> Unit,mainActivityViewModel: MainActivityViewModel) {
+fun DetailScreen(mainActivityViewModel: MainActivityViewModel, gameId: Int) {
 
-    val gamesList by mainActivityViewModel.allGames.collectAsState()
+    val game by mainActivityViewModel.getGameById(gameId).collectAsState(initial = null)
 
-    // Lo Scaffold gestisce la struttura della schermata, incluso il FAB
     Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    onStartGame()
-                },
-                containerColor = MaterialTheme.colorScheme.tertiary,
-                contentColor = MaterialTheme.colorScheme.onTertiary
-            ) {
-                // Icona a forma di controller
-                Icon(
-                    imageVector = Icons.Filled.VideogameAsset,
-                    contentDescription = "Nuova Partita"
-                )
-            }
+        topBar = {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                text = "Simon Score Board",
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+            )
         }
     ) { innerPadding ->
-
-        // Passiamo innerPadding alla LazyColumn per evitare che il FAB copra i contenuti
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
                     top = innerPadding.calculateTopPadding(),
-                    bottom = innerPadding.calculateBottomPadding())
+                    bottom = innerPadding.calculateBottomPadding()
+                )
         ) {
-            items(gamesList) { game ->
-                Button (
-                    // shape = MaterialTheme.shapes.small,
-                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.secondary),
+            item {
+                Text(
+                    modifier = Modifier.padding(10.dp),
+                    text = "${stringResource(R.string.score_text)} ${game?.score ?: 0}",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                )
 
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .background(
-                            MaterialTheme.colorScheme.secondary,
-                            MaterialTheme.shapes.small
-                        ).wrapContentSize(),
-                    onClick = {
+                val sequenceText = game?.sequence ?: ""
+                val errorIndex = game?.errorIndex ?: -1
 
-                    },
-                ) {
+                Text(
+                    modifier = Modifier.padding(10.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                    text = buildAnnotatedString {
+                        sequenceText.forEachIndexed { index, char ->
 
+                            val letterColor = if (errorIndex != -1 && index >= errorIndex) {
+                                Color.Red
+                            } else {
+                                MaterialTheme.colorScheme.onBackground
+                            }
 
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        //verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            //.padding(20.dp)
-                            .background(
-                                MaterialTheme.colorScheme.secondary,
+                            withStyle(style = SpanStyle(color = letterColor)) {
+                                append(char.toString())
+                            }
 
-                                )
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(10.dp),
-                            text = "${game.score}",
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondary
-                        )
-
-                        Text(
-                            modifier = Modifier
-                                .padding(10.dp)
-                                .weight(1f),
-                            textAlign = TextAlign.End,
-                            text = game.sequence.subSequence(1, game.sequence.length - 1)
-                                .toString(),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSecondary
-                        )
-                        /**
-                        Button(
-                        onClick = {
-                        // TODO: Azione per il bottone riga
-                        },
-                        modifier = Modifier.padding(end = 10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                        ) {
-                        Text(
-                        text = ">",
-                        fontWeight = FontWeight.Bold
-                        )
+                            if (index < sequenceText.lastIndex) {
+                                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
+                                    append(", ")
+                                }
+                            }
                         }
-                         **/
                     }
-                }
+                )
             }
         }
     }

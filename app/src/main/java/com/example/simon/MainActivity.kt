@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -34,13 +35,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,11 +49,15 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.simon.ui.theme.DetailScreen
 import com.example.simon.ui.theme.ScoreScreen
 import com.example.simon.ui.theme.SimonTheme
 import com.example.simon.ui.theme.simonLetters
@@ -63,10 +68,11 @@ class MainActivity : ComponentActivity() {
     private val mainActivityViewModel: MainActivityViewModel by viewModels {
         viewModelFactory {
             initializer {
+                val savedStateHandle = createSavedStateHandle()
                 val database = GamesDatabase.getDatabase(applicationContext)
                 val repository = GamesRepository(database.gamesDao())
 
-                MainActivityViewModel(repository)
+                MainActivityViewModel(repository, savedStateHandle)
             }
         }
     }
@@ -91,21 +97,34 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("game-screen"){
                             MainScreen(onEndGame = {
-                                    navController.navigate("score-screen")
-                                }, mainActivityViewModel)
+                                navController.navigate("score-screen")
+                            }, mainActivityViewModel)
 
-                            }
+                        }
                         composable ("score-screen") {
                             ScoreScreen (onStartGame = {
                                 navController.navigate("game-screen")
-                            },mainActivityViewModel)
+                            },
+                                onDetail = { passedId ->
+                                    navController.navigate("detail-screen/$passedId")
+                                },
+                                mainActivityViewModel)
                         }
+                        composable("detail-screen/{gameId}",
+                            arguments = listOf(
+                                navArgument("gameId") { type = NavType.IntType }
+                            )){ backStackEntry ->
+                            val gameId = backStackEntry.arguments?.getInt("gameId") ?: 0
+
+                            DetailScreen(mainActivityViewModel, gameId)
+
                         }
                     }
                 }
             }
         }
     }
+}
 
 /**
  * Main screen is used for choosing the correct
@@ -142,13 +161,25 @@ fun MainScreen (onEndGame: () -> Unit, mainActivityViewModel: MainActivityViewMo
 fun RowMainScreen(
     onEndGame: () -> Unit,
     mainActivityViewModel: MainActivityViewModel) {
-    val pressedText by mainActivityViewModel.getPressed().observeAsState("")
-    val isPaused by mainActivityViewModel.getIsPaused().observeAsState(false)
+
+
+    val isGameOver = mainActivityViewModel.isGameOver
+    val pressedText = mainActivityViewModel.pressedText
+    val isPaused = mainActivityViewModel.isPaused
+
+    BackHandler {
+        if (isGameOver) {
+            onEndGame()
+        } else {
+            mainActivityViewModel.endGameWithButton()
+            onEndGame()
+        }
+    }
+
     val scrollState = rememberScrollState(0)
     LaunchedEffect(pressedText) {
         scrollState.scrollTo(scrollState.maxValue)
     }
-
 
     Row(
         modifier = Modifier.fillMaxSize().padding(5.dp),
@@ -164,13 +195,12 @@ fun RowMainScreen(
             itemsIndexed(
                 mainActivityViewModel.colors) { index, _ ->
                 SimonButton(
-                    mainActivityViewModel.colors[index], simonLetters[index],
+                    mainActivityViewModel.colors[index],
                     pressed = {
                         mainActivityViewModel.press(simonLetters[index])
                     })
             }
         }
-
 
         LazyColumn(
             modifier = Modifier.fillMaxHeight(),
@@ -212,7 +242,7 @@ fun RowMainScreen(
                     FloatingActionButton(
                         onClick = {
                             if(!isPaused)
-                            mainActivityViewModel.pause()
+                                mainActivityViewModel.pause()
                             else mainActivityViewModel.resume()
                         },
                         containerColor = MaterialTheme.colorScheme.tertiary,
@@ -221,16 +251,18 @@ fun RowMainScreen(
                         Icon(
                             imageVector =
                                 if(isPaused) {
-                                    Icons.Filled.PauseCircle
+                                    Icons.Filled.PlayCircle
                                 }
                                 else{
-                                    Icons.Filled.PlayCircle
+                                    Icons.Filled.PauseCircle
                                 },
-                            contentDescription = "Start"
+                            contentDescription = "Start/Pause"
                         )
                     }
                     Button(
                         {
+                            mainActivityViewModel.endGameWithButton()
+                            onEndGame()
 
                         },
                         modifier = Modifier.size(130.dp, 50.dp).padding(5.dp),
@@ -243,7 +275,6 @@ fun RowMainScreen(
                         )
                     }
                 }
-
             }
         }
     }
@@ -257,17 +288,26 @@ fun RowMainScreen(
  * the main widget distribution
  *
  * @param onEndGame is used to navigate to the score screen
- * @param onButtonsClickedChange is used to update the buttonsClicked
- * @param buttonsClicked is used to display the buttons pressed, and save the
- * pressed buttons in a string
  */
 @Composable
 fun ColumnMainScreen(
     onEndGame: () -> Unit,
     mainActivityViewModel: MainActivityViewModel
 ) {
-    val pressedText by mainActivityViewModel.getPressed().observeAsState("")
-    val isPaused by mainActivityViewModel.getIsPaused().observeAsState(false)
+    val isGameOver = mainActivityViewModel.isGameOver
+    val pressedText = mainActivityViewModel.pressedText
+    val isPaused = mainActivityViewModel.isPaused
+    val isGameStart = mainActivityViewModel.isGameStart
+
+    BackHandler {
+        if (isGameOver) {
+            onEndGame()
+        } else {
+            mainActivityViewModel.endGameWithButton()
+            onEndGame()
+        }
+    }
+
     val scrollState = rememberScrollState(0)
     LaunchedEffect(pressedText) {
         scrollState.scrollTo(scrollState.maxValue)
@@ -295,7 +335,6 @@ fun ColumnMainScreen(
 
                 SimonButton(
                     color = mainActivityViewModel.colors[actualIndex],
-                    letter = simonLetters[actualIndex],
                     pressed = {
                         mainActivityViewModel.press(simonLetters[actualIndex])
                     }
@@ -336,38 +375,42 @@ fun ColumnMainScreen(
                             .padding(5.dp)
                             .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
                         shape = MaterialTheme.shapes.small,
-
+                        enabled = !isGameStart
                         ) {
                         Text(
                             text = stringResource(R.string.start_game_button_name),
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
-                    FloatingActionButton(
+                    IconButton(
                         onClick = {
-                            if(!isPaused)
-                                mainActivityViewModel.pause()
+                            if(!isPaused) mainActivityViewModel.pause()
                             else mainActivityViewModel.resume()
                         },
-                        containerColor = MaterialTheme.colorScheme.tertiary,
-                        contentColor = MaterialTheme.colorScheme.onTertiary
+                        enabled = mainActivityViewModel.isRobotPlaying && !isGameOver,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.tertiary
+                        )
                     ) {
                         Icon(
                             imageVector =
-                                if(isPaused) Icons.Filled.PauseCircle
-                                else Icons.Filled.PlayCircle,
-                            contentDescription = "Pause/Resume"
+                                if(isPaused) Icons.Filled.PlayCircle
+                                else Icons.Filled.PauseCircle,
+                            contentDescription = "Pause/Resume",
+                            modifier = Modifier.size(48.dp)
                         )
                     }
                     Button(
                         onClick = {
-
+                            mainActivityViewModel.endGameWithButton()
+                            onEndGame()
                         },
                         modifier = Modifier
                             .size(130.dp, 50.dp)
                             .padding(5.dp)
                             .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
                         shape = MaterialTheme.shapes.small,
+                        enabled = !isGameOver
 
                         ) {
                         Text(
@@ -385,11 +428,10 @@ fun ColumnMainScreen(
 /**
  * This function is used to create the colored buttons of Simon game
  * @param color is the color of the button
- * @param letter is the capital starting letter corresponding to the color of the button
  * @param pressed is a lambda function used to add the letter to the string of the buttons pressed
  */
 @Composable
-fun SimonButton (color: Color, letter: Char, pressed: () -> Unit){
+fun SimonButton (color: Color, pressed: () -> Unit){
     Button(
         onClick = pressed,
         modifier = Modifier.fillMaxWidth()
@@ -401,5 +443,3 @@ fun SimonButton (color: Color, letter: Char, pressed: () -> Unit){
     ){
     }
 }
-
-

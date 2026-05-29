@@ -3,10 +3,14 @@ package com.example.simon
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.simon.ui.theme.Blue
@@ -19,6 +23,7 @@ import com.example.simon.ui.theme.simonLetters
 import database.Game
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -27,7 +32,10 @@ import kotlinx.coroutines.withContext
 import kotlin.math.sin
 import kotlin.random.Random
 
-class MainActivityViewModel(private val repository: GamesRepository) : ViewModel() {
+class MainActivityViewModel(
+    private val repository: GamesRepository,
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     val allGames: StateFlow<List<Game>> = repository.allGames
         .stateIn(
@@ -36,17 +44,8 @@ class MainActivityViewModel(private val repository: GamesRepository) : ViewModel
             initialValue = emptyList()
         )
 
-    private val _pressed = MutableLiveData("")
     var colors = mutableStateListOf(Cyan, Magenta, Blue, Yellow, Red, Green)
         private set
-
-    private val _isPaused = MutableLiveData(false)
-    private var _score = 0
-
-    private var currentTurn = 0
-    private var _isRobotPlaying = true
-
-    private val _order: MutableList<Char> = mutableListOf()
 
     private val soundFrequencies = mapOf(
         'C' to 261.63, // Do (Cyan)
@@ -57,103 +56,162 @@ class MainActivityViewModel(private val repository: GamesRepository) : ViewModel
         'G' to 523.25  // Do alto (Green)
     )
 
-    fun startGame() {
+    var score by mutableIntStateOf(savedStateHandle.get<Int>("score") ?: 0)
+        private set
+
+    var currentTurn by mutableIntStateOf(savedStateHandle.get<Int>("currentTurn") ?: 0)
+        private set
+
+    var isRobotPlaying by mutableStateOf(savedStateHandle.get<Boolean>("isRobotPlaying") ?: true)
+        private set
+
+    var isGameStart by mutableStateOf(savedStateHandle.get<Boolean>("isGameStart") ?: false)
+        private set
+
+    var isPaused by mutableStateOf(savedStateHandle.get<Boolean>("isPaused") ?: false)
+        private set
+
+    var isGameOver by mutableStateOf(savedStateHandle.get<Boolean>("isGameOver") ?: false)
+        private set
+
+    var pressedText by mutableStateOf(savedStateHandle.get<String>("pressedText") ?: "")
+        private set
+
+    val order = mutableStateListOf<Char>()
+
+    init {
+        savedStateHandle.get<String>("orderString")?.forEach { char ->
+            order.add(char)
+        }
         viewModelScope.launch {
-            _isPaused.value = false
-            pausableDelay(1000)
-            _score = 0
-            _order.clear()
-            newTurn()
+            snapshotFlow { score }.collect { savedStateHandle["score"] = it }
+        }
+        viewModelScope.launch {
+            snapshotFlow { currentTurn }.collect { savedStateHandle["currentTurn"] = it }
+        }
+        viewModelScope.launch {
+            snapshotFlow { isRobotPlaying }.collect { savedStateHandle["isRobotPlaying"] = it }
+        }
+        viewModelScope.launch {
+            snapshotFlow { isGameStart }.collect { savedStateHandle["isGameStart"] = it }
+        }
+        viewModelScope.launch {
+            snapshotFlow { isPaused }.collect { savedStateHandle["isPaused"] = it }
+        }
+        viewModelScope.launch {
+            snapshotFlow { isGameOver }.collect { savedStateHandle["isGameOver"] = it }
+        }
+        viewModelScope.launch {
+            snapshotFlow { pressedText }.collect { savedStateHandle["pressedText"] = it }
+        }
+        viewModelScope.launch {
+            snapshotFlow { order.joinToString("") }.collect { savedStateHandle["orderString"] = it }
+        }
+        if (isGameStart && isRobotPlaying && !isGameOver) {
+            replaySequence()
         }
     }
 
-    fun getPressed(): LiveData<String> {
-        return _pressed
-    }
-
-    fun getIsPaused(): LiveData<Boolean> {
-        return _isPaused
+    fun startGame() {
+        if (!isGameStart) {
+            isGameStart = true
+            viewModelScope.launch {
+                isPaused = false
+                pausableDelay(1000)
+                score = 0
+                order.clear()
+                isGameOver = false
+                newTurn()
+            }
+        }
     }
 
     fun newTurn() {
         viewModelScope.launch {
-            _isRobotPlaying = true
+            isRobotPlaying = true
             currentTurn = 0
-            _score++
+            score++
 
             pausableDelay(500)
 
-            _order.add(simonLetters[Random.nextInt(0, 6)])
-            _order.forEach { entry ->
-                pausableDelay(500)
+            val newLetter = simonLetters[Random.nextInt(0, 6)]
+            order.add(newLetter)
 
-                val index = simonLetters.indexOf(entry)
-                val originalColor = colors[index]
+            playOrderSequence()
+        }
+    }
 
-                colors[index] = Color.White
+    private suspend fun playOrderSequence() {
+        order.forEach { entry ->
+            pausableDelay(500)
 
-                playSoundAndDelay(soundFrequencies[entry] ?: 440.0, 500)
+            val index = simonLetters.indexOf(entry)
+            val originalColor = colors[index]
 
-                colors[index] = originalColor
-            }
-            _pressed.value = ""
-            _isRobotPlaying = false
+            colors[index] = Color.White
+            playSoundAndDelay(soundFrequencies[entry] ?: 440.0, 500)
+            colors[index] = originalColor
+        }
+        pressedText = ""
+        isRobotPlaying = false
+    }
+
+    private fun replaySequence() {
+        viewModelScope.launch {
+            isRobotPlaying = true
+            pausableDelay(500)
+            playOrderSequence()
         }
     }
 
     fun pause() {
-        if (_isRobotPlaying) {
-            _isPaused.value = true
+        if (isRobotPlaying) {
+            isPaused = true
         }
     }
 
     fun resume() {
-        if (_isRobotPlaying) {
-            _isPaused.value = false
+        if (isRobotPlaying) {
+            isPaused = false
         }
     }
 
+    fun getGameById(id: Int): Flow<Game> {
+        return repository.getGameById(id)
+    }
 
     /**
      * the press function is used to add the letter to the string of the pressed buttons
      * and to launch the sound of each press, it also check that the corresponding letter
-     * of the button is correct in that sequence, if not it call the game over
+     * of the button is correct in that sequence, if not it call the game over.
+     *
+     * @param value is the letter corresponding to the color of the button pressed
      */
     fun press(value: Char) {
-        if (!_isRobotPlaying) {
+        if (!isRobotPlaying) {
 
             viewModelScope.launch {
                 playSoundAndDelay(soundFrequencies[value] ?: 440.0, 300)
             }
 
-            if (_order[currentTurn] != value) {
+            if (order[currentTurn] != value) {
                 endGame()
                 return
             }
-            if (_pressed.value == "") {
-                _pressed.value = "$value"
+
+            if (pressedText.isEmpty()) {
+                pressedText = "$value"
             } else {
-                _pressed.value += " ,$value"
+                pressedText += " ,$value"
             }
+
             currentTurn++
-            if (_pressed.value?.split(",")?.size == _order.size)
+
+            if (pressedText.split(",").size == order.size) {
                 newTurn()
+            }
         }
     }
-
-
-    fun reset() {
-        _pressed.value = ""
-    }
-
-    /**
-     * function that is necessary to use when working with LiveData and Mutable livedata
-     * this return the the liveData of the string of the pressed buttons
-     */
-    fun pressed(): LiveData<String> {
-        return _pressed
-    }
-
 
     /**
      * This function is used to end the game, save the game data in the database and
@@ -161,17 +219,34 @@ class MainActivityViewModel(private val repository: GamesRepository) : ViewModel
      * game over sound is displayed
      */
     fun endGame() {
-        currentTurn = 0
-        _isRobotPlaying = true
-        _isPaused.value = false
-        _pressed.value = "GAME OVER"
+        isGameStart = false
+        isRobotPlaying = true
+        isPaused = false
+        pressedText = "GAME OVER"
         playGameOverSound()
-        val newGame = Game(
-            score = _score,
-            sequence = _order.toString()
-        )
 
+        val newGame = Game(
+            score = score - 1,
+            sequence = order.joinToString(""),
+            errorIndex = currentTurn
+        )
         insert(newGame)
+        currentTurn = 0
+        isGameOver = true
+    }
+
+    fun endGameWithButton() {
+        if (isGameStart) {
+            if (score <= 1) {
+                isGameStart = false
+                isRobotPlaying = true
+                isPaused = false
+                isGameOver = true
+                currentTurn = 0
+            } else {
+                endGame()
+            }
+        }
     }
 
     /**
@@ -197,7 +272,7 @@ class MainActivityViewModel(private val repository: GamesRepository) : ViewModel
     private suspend fun pausableDelay(durationMs: Int) {
         var elapsed = 0
         while (elapsed < durationMs) {
-            if (_isPaused.value == true) {
+            if (isPaused) {
                 delay(10)
             } else {
                 delay(10)
@@ -226,19 +301,16 @@ class MainActivityViewModel(private val repository: GamesRepository) : ViewModel
             for (i in 0 until numSamples) {
                 val time = i.toDouble() / sampleRate
 
-                // timber generation
                 val fundamental = sin(2 * Math.PI * frequency * time)
                 val harmonic = sin(2 * Math.PI * (frequency * 2) * time)
                 var wave = (0.8 * fundamental) + (0.2 * harmonic)
 
-                // Fade-In e Fade-Out
                 if (i < attackSamples) {
                     wave *= (i.toDouble() / attackSamples)
                 } else if (i > numSamples - releaseSamples) {
                     wave *= ((numSamples - i).toDouble() / releaseSamples)
                 }
 
-                // Max volume in order to avoid clipping
                 val valShort = (wave * 24000).toInt().toShort()
 
                 generatedSnd[idx++] = (valShort.toInt() and 0x00ff).toByte()
@@ -270,9 +342,8 @@ class MainActivityViewModel(private val repository: GamesRepository) : ViewModel
         var elapsed = 0
         var isAudioPlaying = false
 
-        // this is needed in order to make sure that it pause when paused
         while (elapsed < durationMs) {
-            if (_isPaused.value == true) {
+            if (isPaused) {
                 if (isAudioPlaying) {
                     audioTrack.pause()
                     isAudioPlaying = false
@@ -288,7 +359,6 @@ class MainActivityViewModel(private val repository: GamesRepository) : ViewModel
             }
         }
 
-        // release the resource after
         withContext(Dispatchers.IO) {
             audioTrack.stop()
             audioTrack.release()
@@ -302,32 +372,26 @@ class MainActivityViewModel(private val repository: GamesRepository) : ViewModel
     private fun playGameOverSound() {
         viewModelScope.launch(Dispatchers.IO) {
             val sampleRate = 44100
-            val durationMs = 1200 // 1.2 secondi di durata
+            val durationMs = 1200
             val numSamples = durationMs * sampleRate / 1000
             val generatedSnd = ByteArray(2 * numSamples)
             var idx = 0
 
-            val startFreq = 300.0 // Frequenza di partenza (più acuta)
-            val endFreq = 100.0   // Frequenza finale (bassa e cupa)
+            val startFreq = 300.0
+            val endFreq = 100.0
 
             for (i in 0 until numSamples) {
                 val time = i.toDouble() / sampleRate
-
-                // Il trucco: la frequenza cala linearmente col passare dei campioni
                 val currentFreq = startFreq - ((startFreq - endFreq) * (i.toDouble() / numSamples))
-
-                // Generazione timbro (stesso stile armonico del resto del gioco)
                 val fundamental = sin(2 * Math.PI * currentFreq * time)
                 val harmonic = sin(2 * Math.PI * (currentFreq * 2) * time)
                 var wave = (0.8 * fundamental) + (0.2 * harmonic)
 
-                // Fade-Out solo alla fine per non gracchiare quando si ferma
                 val fadeOutThreshold = numSamples * 0.8
                 if (i > fadeOutThreshold) {
                     wave *= ((numSamples - i).toDouble() / (numSamples - fadeOutThreshold))
                 }
 
-                // Volume
                 val valShort = (wave * 24000).toInt().toShort()
 
                 generatedSnd[idx++] = (valShort.toInt() and 0x00ff).toByte()
@@ -352,7 +416,6 @@ class MainActivityViewModel(private val repository: GamesRepository) : ViewModel
                 .setTransferMode(AudioTrack.MODE_STATIC)
                 .build()
 
-            // Suona in modo indipendente senza bloccare altre coroutine
             track.write(generatedSnd, 0, generatedSnd.size)
             track.play()
 

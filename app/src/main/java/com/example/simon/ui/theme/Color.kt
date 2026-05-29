@@ -20,14 +20,6 @@ var Magenta by mutableStateOf(Color(0xFF9C27B0))
 var Yellow by mutableStateOf(Color(0xFFFFFF00))
 var Cyan by mutableStateOf(Color(0xFF00FFFF))
 
-val gg = mutableMapOf<Char,Color>('C' to Cyan, 'M' to Magenta, 'B' to Blue, 'Y' to Yellow, 'R' to Red, 'G' to Green)
-/**
- * These two are need for the correct order of the buttons colors
- * in RowMainScreen and ColumnMainScreen
- */
-
-val simonColors = mutableListOf(Cyan, Magenta, Blue, Yellow, Red, Green)
-val simonHorizontalColors = listOf(Cyan, Blue, Red, Magenta, Yellow, Green)
 
 val simonLetters = listOf('C', 'M', 'B', 'Y', 'R', 'G')
 

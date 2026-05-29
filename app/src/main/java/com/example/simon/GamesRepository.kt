@@ -12,4 +12,9 @@ class GamesRepository (private val gamesDao: GamesDao) {
         gamesDao.insert(game)
     }
 
+    fun getGameById(id: Int): Flow<Game> {
+        return gamesDao.getGameById(id)
+
+    }
+
 }

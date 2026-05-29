@@ -3,7 +3,6 @@ package com.example.simon.ui.theme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,189 +17,88 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.simon.MainActivityViewModel
 
 /**
  * The score screen is used in order to display the score
  * and the letter corresponding to the color pressed in sequence
- * @param historyList is a list of string corresponding to all the
- * played game since the start of the application
- * @param scoreList is a list of integer corresponding to all the
- * score gotten since the start of the application
- * both need to be rememberSavable in order to be saved when the
- * device change orientation
+ * @param onStartGame is used to navigate to the game screen
+ * @param onDetail is used to navigate to the detail screen
+ * @param mainActivityViewModel is the view model of the main activity
  */
-
-/**
 @Composable
-fun ScoreScreen(historyList : MutableList<String> = rememberSaveable {
-    //simon.getHistory()
-                    mutableListOf()
-                                                                     }
-                , scoreList : MutableList<Int> = rememberSaveable{
-                        mutableListOf()
-                }) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        itemsIndexed(historyList) { index, element ->
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-              modifier = Modifier
-                  .padding(
-                      20.dp
-                  )
-                  .background(
-                      MaterialTheme.colorScheme.secondary,
-                      MaterialTheme.shapes.small
-                  )
-                  .fillMaxWidth()
-            ){
-                Text(
-                    modifier = Modifier
-                        .padding(
-                            10.dp
-                        ),
-                    text = "${scoreList[index]}",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondary
-
-                )
-                Text(
-                    modifier = Modifier.padding(10.dp),
-                    text = element,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-            }
-
-        }
-    }
-}  **/
-@Composable
-fun ScoreScreen1(onStartGame : () -> Unit, mainActivityViewModel: MainActivityViewModel) {
+fun ScoreScreen(
+    onStartGame: () -> Unit,
+    onDetail: (id: Int) -> Unit,
+    mainActivityViewModel: MainActivityViewModel
+) {
 
     val gamesList by mainActivityViewModel.allGames.collectAsState()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        items(gamesList) { game ->
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .padding(20.dp)
-                    .background(
-                        MaterialTheme.colorScheme.secondary,
-                        MaterialTheme.shapes.small
-                    )
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    modifier = Modifier.padding(10.dp),
-                    text = "${game.score}",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-                Text(
-                    modifier = Modifier.padding(10.dp),
-                    text = game.sequence.subSequence(1, game.sequence.length - 1).toString(),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-                Button(
-                    onClick = {
-                        onStartGame()
-                    },
-                    modifier = Modifier.padding(end = 10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text(
-                        text = ">",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ScoreScreen(onStartGame : () -> Unit,mainActivityViewModel: MainActivityViewModel) {
-
-    val gamesList by mainActivityViewModel.allGames.collectAsState()
-
-    // Lo Scaffold gestisce la struttura della schermata, incluso il FAB
     Scaffold(
+        topBar = {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                text = "Simon Score Board",
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    onStartGame()
-                },
+                onClick = { onStartGame() },
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary
             ) {
-                // Icona a forma di controller
                 Icon(
                     imageVector = Icons.Filled.VideogameAsset,
-                    contentDescription = "Nuova Partita"
+                    contentDescription = "Play Game"
                 )
             }
         }
     ) { innerPadding ->
-
-        // Passiamo innerPadding alla LazyColumn per evitare che il FAB copra i contenuti
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
                     top = innerPadding.calculateTopPadding(),
-            bottom = innerPadding.calculateBottomPadding())
+                    bottom = innerPadding.calculateBottomPadding()
+                )
         ) {
             items(gamesList) { game ->
-                Button (
-                   // shape = MaterialTheme.shapes.small,
+                Button(
                     colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.secondary),
-
                     modifier = Modifier
                         .padding(20.dp)
                         .background(
                             MaterialTheme.colorScheme.secondary,
                             MaterialTheme.shapes.small
-                ).wrapContentSize(),
+                        )
+                        .wrapContentSize(),
                     onClick = {
-
+                        onDetail(game.id)
                     },
                 ) {
-
-
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        //verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            //.padding(20.dp)
-                            .background(
-                                MaterialTheme.colorScheme.secondary,
-
-                            )
+                            .background(MaterialTheme.colorScheme.secondary)
                             .fillMaxWidth()
                     ) {
                         Text(
@@ -210,38 +108,37 @@ fun ScoreScreen(onStartGame : () -> Unit,mainActivityViewModel: MainActivityView
                             color = MaterialTheme.colorScheme.onSecondary
                         )
 
+                        val sequenceText = game.sequence
+                        val errorIndex = game.errorIndex
+
                         Text(
                             modifier = Modifier
                                 .padding(10.dp)
                                 .weight(1f),
                             textAlign = TextAlign.End,
-                            text = game.sequence.subSequence(1, game.sequence.length - 1)
-                                .toString(),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSecondary
+                            text = buildAnnotatedString {
+                                sequenceText.forEachIndexed { index, char ->
+                                    val letterColor = if (errorIndex != -1 && index >= errorIndex) {
+                                        Color.Red
+                                    } else {
+                                        MaterialTheme.colorScheme.onSecondary
+                                    }
+                                    withStyle(style = SpanStyle(color = letterColor)) {
+                                        append(char.toString())
+                                    }
+                                    if (index < sequenceText.lastIndex) {
+                                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSecondary)) {
+                                            append(", ")
+                                        }
+                                    }
+                                }
+                            }
                         )
-                        /**
-                        Button(
-                        onClick = {
-                        // TODO: Azione per il bottone riga
-                        },
-                        modifier = Modifier.padding(end = 10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                        ) {
-                        Text(
-                        text = ">",
-                        fontWeight = FontWeight.Bold
-                        )
-                        }
-                         **/
                     }
                 }
             }
         }
     }
 }
-

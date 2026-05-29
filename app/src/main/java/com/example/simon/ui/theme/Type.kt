@@ -33,10 +33,3 @@ val Typography = Typography(
     )
     */
 )
-
-/**
- * @param simon is the logic behind the game used for:
- *      -saving the pressed buttons
- *      -save the gotten score
- */
-val simon = Simon()

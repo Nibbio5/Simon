@@ -2,5 +2,6 @@
     <string name="app_name">Simon</string>
     <string name="end_game_button_name">End Game</string>
     <string name="start_game_button_name">Start Game</string>
-    <string name="game_over">Game Over</string>
+    <string name="score_text">Your Score in this game is: </string>
+    <string name="detail_screen_topbar">Detail Screen</string>
 </resources>
