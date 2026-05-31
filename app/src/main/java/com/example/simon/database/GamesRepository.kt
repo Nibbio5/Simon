@@ -1,7 +1,5 @@
-package com.example.simon
+package com.example.simon.database
 
-import database.Game
-import database.GamesDao
 import kotlinx.coroutines.flow.Flow
 
 /**

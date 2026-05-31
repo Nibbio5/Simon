@@ -57,11 +57,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.simon.ui.theme.DetailScreen
-import com.example.simon.ui.theme.ScoreScreen
+import com.example.simon.database.GamesDatabase
+import com.example.simon.database.GamesRepository
+import com.example.simon.screens.DetailScreen
+import com.example.simon.screens.ScoreScreen
 import com.example.simon.ui.theme.SimonTheme
 import com.example.simon.ui.theme.simonLetters
-import database.GamesDatabase
 
 class MainActivity : ComponentActivity() {
 
@@ -92,32 +93,38 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(
-                        navController = navController, startDestination = "score-screen",
+                        navController = navController,
+                        startDestination = "score-screen",
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("game-screen"){
                             MainScreen(onEndGame = {
-                                navController.navigate("score-screen")
+                                navController.navigate("score-screen") {
+                                    popUpTo("game-screen") { inclusive = true }
+                                }
                             }, mainActivityViewModel)
-
                         }
-                        composable ("score-screen") {
-                            ScoreScreen (onStartGame = {
-                                navController.navigate("game-screen")
-                            },
+
+                        composable("score-screen") {
+                            ScoreScreen(
+                                onStartGame = {
+                                    navController.navigate("game-screen") {
+                                        popUpTo("score-screen") { inclusive = true }
+                                    }
+                                },
                                 onDetail = { passedId ->
                                     navController.navigate("detail-screen/$passedId")
                                 },
-                                mainActivityViewModel)
+                                mainActivityViewModel
+                            )
                         }
-                        composable("detail-screen/{gameId}",
-                            arguments = listOf(
-                                navArgument("gameId") { type = NavType.IntType }
-                            )){ backStackEntry ->
+
+                        composable(
+                            "detail-screen/{gameId}",
+                            arguments = listOf(navArgument("gameId") { type = NavType.IntType })
+                        ) { backStackEntry ->
                             val gameId = backStackEntry.arguments?.getInt("gameId") ?: 0
-
                             DetailScreen(mainActivityViewModel, gameId)
-
                         }
                     }
                 }

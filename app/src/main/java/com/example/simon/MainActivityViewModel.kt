@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.simon.database.Game
+import com.example.simon.database.GamesRepository
 import com.example.simon.ui.theme.Blue
 import com.example.simon.ui.theme.Cyan
 import com.example.simon.ui.theme.Green
@@ -20,7 +22,6 @@ import com.example.simon.ui.theme.Magenta
 import com.example.simon.ui.theme.Red
 import com.example.simon.ui.theme.Yellow
 import com.example.simon.ui.theme.simonLetters
-import database.Game
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -139,6 +140,7 @@ class MainActivityViewModel(
                 pausableDelay(1000)
                 score = 0
                 order.clear()
+                pressedText = ""
                 newTurn()
             }
         }
@@ -239,7 +241,7 @@ class MainActivityViewModel(
         if (!isRobotPlaying) {
 
             viewModelScope.launch {
-                playSoundAndDelay(soundFrequencies[value] ?: 440.0, 300)
+                playSoundAndDelay(soundFrequencies[value] ?: 440.0, 450)
             }
 
             if (order[currentTurn] != value) {
@@ -250,7 +252,7 @@ class MainActivityViewModel(
             if (pressedText.isEmpty()) {
                 pressedText = "$value"
             } else {
-                pressedText += " ,$value"
+                pressedText += ",$value "
             }
 
             currentTurn++
@@ -288,16 +290,20 @@ class MainActivityViewModel(
      * press the system back gesture
      */
     fun endGameWithButton() {
+        viewModelScope.launch {
         if (isGameStart) {
-            isGameOver = true
 
-            if (score <= 1) {
-                isGameStart = false
-                isRobotPlaying = true
-                isPaused = false
-                currentTurn = 0
-            } else {
-                endGame()
+                delay(200)
+                isGameOver = true
+
+                if (order.size <= 1) {
+                    isGameStart = false
+                    isRobotPlaying = true
+                    isPaused = false
+                    currentTurn = 0
+                } else {
+                    endGame()
+                }
             }
         }
     }

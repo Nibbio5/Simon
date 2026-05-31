@@ -1,4 +1,4 @@
-package com.example.simon.ui.theme
+package com.example.simon.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

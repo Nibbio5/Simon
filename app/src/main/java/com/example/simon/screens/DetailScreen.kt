@@ -1,4 +1,4 @@
-package com.example.simon.ui.theme
+package com.example.simon.screens
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
