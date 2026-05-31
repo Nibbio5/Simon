@@ -45,7 +45,7 @@ fun DetailScreen(mainActivityViewModel: MainActivityViewModel, gameId: Int) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(20.dp),
-                text = "Simon Score Board",
+                text = stringResource(R.string.detail_screen_topbar),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize,
