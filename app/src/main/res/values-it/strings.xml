@@ -5,4 +5,5 @@
     <string name="start_game_button_name">Avvia Partita</string>
     <string name="score_text">Il tuo punteggio in questa partita è: </string>
     <string name="detail_screen_topbar">Dettaglio Partita</string>
+    <string name="score_screen_topbar">Punteggi Partite</string>
 </resources>

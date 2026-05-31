@@ -4,4 +4,5 @@
     <string name="start_game_button_name">Start Game</string>
     <string name="score_text">Your Score in this game is: </string>
     <string name="detail_screen_topbar">Detail Screen</string>
+    <string name="score_screen_topbar">Score Screen</string>
 </resources>

@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -175,6 +174,7 @@ fun RowMainScreen(
     val isGameOver = mainActivityViewModel.isGameOver
     val pressedText = mainActivityViewModel.pressedText
     val isPaused = mainActivityViewModel.isPaused
+    val isGameStart = mainActivityViewModel.isGameStart
 
     BackHandler {
         if (isGameOver) {
@@ -232,55 +232,60 @@ fun RowMainScreen(
             }
             item {
                 Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        {
-                            mainActivityViewModel.startGame()
-                        },
-                        modifier = Modifier.size(130.dp, 50.dp).padding(5.dp),
+                        onClick = { mainActivityViewModel.startGame() },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp)
+                            .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
                         shape = MaterialTheme.shapes.small,
-
-                        ) {
+                        enabled = !isGameStart
+                    ) {
                         Text(
                             text = stringResource(R.string.start_game_button_name),
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
-                    FloatingActionButton(
+                    IconButton(
                         onClick = {
-                            if(!isPaused)
-                                mainActivityViewModel.pause()
+                            if (!isPaused) mainActivityViewModel.pause()
                             else mainActivityViewModel.resume()
                         },
-                        containerColor = MaterialTheme.colorScheme.tertiary,
-                        contentColor = MaterialTheme.colorScheme.onTertiary
+                        enabled = mainActivityViewModel.isRobotPlaying && !isGameOver,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.tertiary
+                        ),
+                        modifier = Modifier.size(50.dp)
                     ) {
                         Icon(
-                            imageVector =
-                                if(isPaused) {
-                                    Icons.Filled.PlayCircle
-                                }
-                                else{
-                                    Icons.Filled.PauseCircle
-                                },
-                            contentDescription = "Start/Pause"
+                            imageVector = if (isPaused) Icons.Filled.PlayCircle else Icons.Filled.PauseCircle,
+                            contentDescription = "Pause/Resume",
+                            modifier = Modifier.size(40.dp)
                         )
                     }
                     Button(
-                        {
+                        onClick = {
                             mainActivityViewModel.endGameWithButton()
                             onEndGame()
-
                         },
-                        modifier = Modifier.size(130.dp, 50.dp).padding(5.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp)
+                            .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
                         shape = MaterialTheme.shapes.small,
-
-                        ) {
+                        enabled = isGameStart
+                    ) {
                         Text(
                             text = stringResource(R.string.end_game_button_name),
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -375,41 +380,41 @@ fun ColumnMainScreen(
             }
             item {
                 Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        onClick = {
-                            mainActivityViewModel.startGame()
-                        },
+                        onClick = { mainActivityViewModel.startGame() },
                         modifier = Modifier
-                            .size(130.dp, 50.dp)
-                            .padding(5.dp)
+                            .weight(1f)
+                            .height(50.dp)
                             .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
                         shape = MaterialTheme.shapes.small,
                         enabled = !isGameStart
-                        ) {
+                    ) {
                         Text(
                             text = stringResource(R.string.start_game_button_name),
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                     IconButton(
                         onClick = {
-                            if(!isPaused) mainActivityViewModel.pause()
+                            if (!isPaused) mainActivityViewModel.pause()
                             else mainActivityViewModel.resume()
                         },
                         enabled = mainActivityViewModel.isRobotPlaying && !isGameOver,
                         colors = IconButtonDefaults.iconButtonColors(
                             contentColor = MaterialTheme.colorScheme.tertiary
-                        )
+                        ),
+                        modifier = Modifier.size(50.dp)
                     ) {
                         Icon(
-                            imageVector =
-                                if(isPaused) Icons.Filled.PlayCircle
-                                else Icons.Filled.PauseCircle,
+                            imageVector = if (isPaused) Icons.Filled.PlayCircle else Icons.Filled.PauseCircle,
                             contentDescription = "Pause/Resume",
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(40.dp)
                         )
                     }
                     Button(
@@ -418,16 +423,17 @@ fun ColumnMainScreen(
                             onEndGame()
                         },
                         modifier = Modifier
-                            .size(130.dp, 50.dp)
-                            .padding(5.dp)
+                            .weight(1f)
+                            .height(50.dp)
                             .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
                         shape = MaterialTheme.shapes.small,
-                        enabled = !isGameOver
-
-                        ) {
+                        enabled = isGameStart
+                    ) {
                         Text(
-                            text = stringResource( R.string.end_game_button_name),
-                            color = MaterialTheme.colorScheme.onPrimary
+                            text = stringResource(R.string.end_game_button_name),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }

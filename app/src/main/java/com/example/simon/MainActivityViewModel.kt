@@ -72,7 +72,7 @@ class MainActivityViewModel(
     var currentTurn by mutableIntStateOf(savedStateHandle.get<Int>("currentTurn") ?: 0)
         private set
 
-    var isRobotPlaying by mutableStateOf(savedStateHandle.get<Boolean>("isRobotPlaying") ?: true)
+    var isRobotPlaying by mutableStateOf(savedStateHandle.get<Boolean>("isRobotPlaying") ?: false)
         private set
 
     var isGameStart by mutableStateOf(savedStateHandle.get<Boolean>("isGameStart") ?: false)
@@ -134,13 +134,13 @@ class MainActivityViewModel(
     fun startGame() {
         if (!isGameStart) {
             isGameStart = true
+            isRobotPlaying = true
             viewModelScope.launch {
                 isPaused = false
                 isGameOver = false
                 pausableDelay(1000)
                 score = 0
                 order.clear()
-                pressedText = ""
                 newTurn()
             }
         }
@@ -157,7 +157,6 @@ class MainActivityViewModel(
             score++
 
             pausableDelay(500)
-            if (isGameOver) return@launch
 
             val newLetter = simonLetters[Random.nextInt(0, 6)]
             order.add(newLetter)
@@ -181,7 +180,9 @@ class MainActivityViewModel(
             val index = simonLetters.indexOf(entry)
             val originalColor = colors[index]
             colors[index] = Color.White
+
             playSoundAndDelay(soundFrequencies[entry] ?: 440.0, 500)
+
             colors[index] = originalColor
 
             if (isGameOver) return
@@ -291,20 +292,18 @@ class MainActivityViewModel(
      */
     fun endGameWithButton() {
         viewModelScope.launch {
-        if (isGameStart) {
-
-                delay(200)
-                isGameOver = true
-
-                if (order.size <= 1) {
-                    isGameStart = false
-                    isRobotPlaying = true
-                    isPaused = false
-                    currentTurn = 0
-                } else {
-                    endGame()
-                }
+        if (!isGameOver) {
+            isGameOver = true
+            delay(300)
+            if (score <= 1) {
+                isGameStart = false
+                isRobotPlaying = false
+                isPaused = false
+                currentTurn = 0
+            } else {
+                endGame()
             }
+        }
         }
     }
 
@@ -356,23 +355,22 @@ class MainActivityViewModel(
             val generatedSnd = ByteArray(2 * numSamples)
             var idx = 0
 
-            val attackSamples = (0.03 * sampleRate).toInt()
-            val releaseSamples = (0.15 * sampleRate).toInt()
+            val attackSamples = (0.02 * sampleRate).toInt()
+            val releaseSamples = (0.10 * sampleRate).toInt()
 
             for (i in 0 until numSamples) {
                 val time = i.toDouble() / sampleRate
 
                 val fundamental = sin(2 * Math.PI * frequency * time)
                 val harmonic = sin(2 * Math.PI * (frequency * 2) * time)
-                var wave = (0.8 * fundamental) + (0.2 * harmonic)
+                var wave = (0.85 * fundamental) + (0.15 * harmonic)
 
                 if (i < attackSamples) {
                     wave *= (i.toDouble() / attackSamples)
                 } else if (i > numSamples - releaseSamples) {
                     wave *= ((numSamples - i).toDouble() / releaseSamples)
                 }
-
-                val valShort = (wave * 24000).toInt().toShort()
+                val valShort = (wave * 20000).toInt().toShort()
 
                 generatedSnd[idx++] = (valShort.toInt() and 0x00ff).toByte()
                 generatedSnd[idx++] = (valShort.toInt() and 0xff00 ushr 8).toByte()
@@ -402,7 +400,6 @@ class MainActivityViewModel(
 
         var elapsed = 0
         var isAudioPlaying = false
-
         while (elapsed < durationMs) {
             if (isGameOver) {
                 break
@@ -423,8 +420,12 @@ class MainActivityViewModel(
                 elapsed += 10
             }
         }
+        viewModelScope.launch(Dispatchers.IO) {
 
-        withContext(Dispatchers.IO) {
+            val numSamples = durationMs * 44100 / 1000
+            while (audioTrack.playbackHeadPosition < numSamples && !isGameOver) {
+                delay(10)
+            }
             audioTrack.stop()
             audioTrack.release()
         }
@@ -445,6 +446,9 @@ class MainActivityViewModel(
             val startFreq = 300.0
             val endFreq = 100.0
 
+            val attackSamples = (0.05 * sampleRate).toInt()
+            val fadeOutThreshold = numSamples * 0.8
+
             for (i in 0 until numSamples) {
                 val time = i.toDouble() / sampleRate
                 val currentFreq = startFreq - ((startFreq - endFreq) * (i.toDouble() / numSamples))
@@ -452,12 +456,14 @@ class MainActivityViewModel(
                 val harmonic = sin(2 * Math.PI * (currentFreq * 2) * time)
                 var wave = (0.8 * fundamental) + (0.2 * harmonic)
 
-                val fadeOutThreshold = numSamples * 0.8
-                if (i > fadeOutThreshold) {
+                if (i < attackSamples) {
+                    wave *= (i.toDouble() / attackSamples)
+                }
+                else if (i > fadeOutThreshold) {
                     wave *= ((numSamples - i).toDouble() / (numSamples - fadeOutThreshold))
                 }
 
-                val valShort = (wave * 24000).toInt().toShort()
+                val valShort = (wave * 20000).toInt().toShort()
 
                 generatedSnd[idx++] = (valShort.toInt() and 0x00ff).toByte()
                 generatedSnd[idx++] = (valShort.toInt() and 0xff00 ushr 8).toByte()
@@ -484,10 +490,14 @@ class MainActivityViewModel(
             track.write(generatedSnd, 0, generatedSnd.size)
             track.play()
 
-            delay(durationMs.toLong())
+            while (track.playbackHeadPosition < numSamples) {
+                delay(10)
+            }
+
 
             track.stop()
             track.release()
+
         }
     }
 }
