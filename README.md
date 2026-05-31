@@ -12,12 +12,13 @@ text, end button and delete button adaptive to the screen.
 ## Testing
 
  The testing has been done in a physical and emulated device
-- **Huawei p40 lite** as physical device
+- **Huawei p40 lite** as physical device (android 10)
 - **Google pixel 9a** as emulated device with the following settings
 
 **IDE** :  Android Studio Otter 3 Feature Drop 2025.2.3
 | Setting | Value |
 | :--- | :--- |
+| `android version` | 17 (API 37.0) |
 | `avd.ini.displayname` | Pixel 9a |
 | `avd.ini.encoding` | UTF-8 |
 | `AvdId` | Pixel_9a |
