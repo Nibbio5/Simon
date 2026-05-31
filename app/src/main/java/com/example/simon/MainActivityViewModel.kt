@@ -32,6 +32,14 @@ import kotlinx.coroutines.withContext
 import kotlin.math.sin
 import kotlin.random.Random
 
+/**
+ * This class is used to create the view model for the main activity
+ *
+ * @param repository is the repository of the games database
+ * @param savedStateHandle is the saved state handle of the main activity
+ * this is used to maintain the activity state when the developer option
+ * "Don't keep activities" is enabled
+ */
 class MainActivityViewModel(
     private val repository: GamesRepository,
     private val savedStateHandle: SavedStateHandle
@@ -44,6 +52,7 @@ class MainActivityViewModel(
             initialValue = emptyList()
         )
 
+    //colors of the buttons
     var colors = mutableStateListOf(Cyan, Magenta, Blue, Yellow, Red, Green)
         private set
 
@@ -79,6 +88,11 @@ class MainActivityViewModel(
 
     val order = mutableStateListOf<Char>()
 
+
+    /**
+     * This block of code is used to restore the state of the game
+     * when the user return to the app from the background.
+     */
     init {
         savedStateHandle.get<String>("orderString")?.forEach { char ->
             order.add(char)
@@ -112,20 +126,28 @@ class MainActivityViewModel(
         }
     }
 
+    /**
+     * This function is used to start the game, it launch a coroutine
+     * only if the game is not already started.
+     */
     fun startGame() {
         if (!isGameStart) {
             isGameStart = true
             viewModelScope.launch {
                 isPaused = false
+                isGameOver = false
                 pausableDelay(1000)
                 score = 0
                 order.clear()
-                isGameOver = false
                 newTurn()
             }
         }
     }
 
+    /**
+     * This function is used to start a new turn, it launch a coroutine
+     * called every new round to add a new button to the sequence randomly
+     */
     fun newTurn() {
         viewModelScope.launch {
             isRobotPlaying = true
@@ -133,6 +155,7 @@ class MainActivityViewModel(
             score++
 
             pausableDelay(500)
+            if (isGameOver) return@launch
 
             val newLetter = simonLetters[Random.nextInt(0, 6)]
             order.add(newLetter)
@@ -141,21 +164,36 @@ class MainActivityViewModel(
         }
     }
 
+    /**
+     * This function is used to play the sequence of the game, it launch a coroutine
+     * for each letter in the sequence, it change the color of the button to white
+     * and after 500ms it change the color back to the original color.
+     * It is only called from the startGame function
+     */
     private suspend fun playOrderSequence() {
         order.forEach { entry ->
             pausableDelay(500)
 
+            if (isGameOver) return
+
             val index = simonLetters.indexOf(entry)
             val originalColor = colors[index]
-
             colors[index] = Color.White
             playSoundAndDelay(soundFrequencies[entry] ?: 440.0, 500)
             colors[index] = originalColor
+
+            if (isGameOver) return
         }
+
         pressedText = ""
         isRobotPlaying = false
     }
 
+    /**
+     * This function is used to replay the sequence of the game, it launch a coroutine
+     * it is called from the init block to replay the current turn sequence when the app
+     * is reopened from background
+     */
     private fun replaySequence() {
         viewModelScope.launch {
             isRobotPlaying = true
@@ -164,18 +202,28 @@ class MainActivityViewModel(
         }
     }
 
+    /**
+     * This function is used to pause the game
+     */
     fun pause() {
         if (isRobotPlaying) {
             isPaused = true
         }
     }
 
+    /**
+     * This function is used to resume the game
+     */
     fun resume() {
         if (isRobotPlaying) {
             isPaused = false
         }
     }
 
+    /**
+     * This function is used to get the game by id from the database
+     * used in the detail screen
+     */
     fun getGameById(id: Int): Flow<Game> {
         return repository.getGameById(id)
     }
@@ -219,6 +267,7 @@ class MainActivityViewModel(
      * game over sound is displayed
      */
     fun endGame() {
+        isGameOver = true
         isGameStart = false
         isRobotPlaying = true
         isPaused = false
@@ -232,16 +281,20 @@ class MainActivityViewModel(
         )
         insert(newGame)
         currentTurn = 0
-        isGameOver = true
     }
 
+    /**
+     * This function is used to end the game when the user click on the button or
+     * press the system back gesture
+     */
     fun endGameWithButton() {
         if (isGameStart) {
+            isGameOver = true
+
             if (score <= 1) {
                 isGameStart = false
                 isRobotPlaying = true
                 isPaused = false
-                isGameOver = true
                 currentTurn = 0
             } else {
                 endGame()
@@ -272,6 +325,8 @@ class MainActivityViewModel(
     private suspend fun pausableDelay(durationMs: Int) {
         var elapsed = 0
         while (elapsed < durationMs) {
+            if (isGameOver) return
+
             if (isPaused) {
                 delay(10)
             } else {
@@ -343,6 +398,10 @@ class MainActivityViewModel(
         var isAudioPlaying = false
 
         while (elapsed < durationMs) {
+            if (isGameOver) {
+                break
+            }
+
             if (isPaused) {
                 if (isAudioPlaying) {
                     audioTrack.pause()

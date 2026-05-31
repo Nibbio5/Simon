@@ -152,10 +152,12 @@ fun MainScreen (onEndGame: () -> Unit, mainActivityViewModel: MainActivityViewMo
  * for the Landscape orientation and the Portrait orientation
  * The structure is a little different for the Landscape orientation
  * since is use a Row and a LazyHorizontalGrid for the buttons and
- * the main widget distribution
+ * the main widget distribution.
+ *
+ * Landscape screen
  *
  * @param onEndGame is used to navigate to the score screen
-
+ * @param mainActivityViewModel is the view model of the activity
  */
 @Composable
 fun RowMainScreen(
@@ -287,7 +289,10 @@ fun RowMainScreen(
  * since is use a Column and a LazyVerticalGrid for the buttons and
  * the main widget distribution
  *
+ * Portrait screen
+ *
  * @param onEndGame is used to navigate to the score screen
+ * @param mainActivityViewModel is the view model of the activity
  */
 @Composable
 fun ColumnMainScreen(

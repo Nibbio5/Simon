@@ -7,6 +7,10 @@ import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * This interface is used to create of dao for the games database
+ * it contains the different queries for the database
+ */
 @Dao
 interface GamesDao {
 

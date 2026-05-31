@@ -46,6 +46,7 @@ fun ScoreScreen(
     mainActivityViewModel: MainActivityViewModel
 ) {
 
+    //var of the games list
     val gamesList by mainActivityViewModel.allGames.collectAsState()
 
     Scaffold(
@@ -118,7 +119,7 @@ fun ScoreScreen(
                             textAlign = TextAlign.End,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            text = buildAnnotatedString {
+                            text = buildAnnotatedString { //print the letter with te ', ' and add the color from the error point
                                 sequenceText.forEachIndexed { index, char ->
                                     val letterColor = if (errorIndex != -1 && index >= errorIndex) {
                                         Color.Red
